@@ -42,3 +42,6 @@ next-env.d.ts
 
 # Données locales de développement (base PGlite)
 .data
+
+# Configuration locale des éditeurs JetBrains
+.idea/
