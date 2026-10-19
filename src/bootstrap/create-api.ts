@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
-import { createSystemModule } from '@/modules/system'
+import { createSystemApi } from '@/modules/system/api'
+
 
 /**
  * Racine de composition : le seul endroit du projet qui connaît à la fois
@@ -9,7 +10,7 @@ import { createSystemModule } from '@/modules/system'
 export function createApi() {
   // 1. Instanciation des modules. Leurs dépendances (base de données,
   //    journal d'événements, authentification) leur seront fournies ici.
-  const system = createSystemModule()
+  const system = { api: createSystemApi(Date.now()) }
 
   // 2. Application principale : toutes ses routes sont préfixées par /api.
   const app = new Hono().basePath('/api')

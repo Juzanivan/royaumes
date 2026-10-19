@@ -1,7 +1,7 @@
 'use client'
 import { hc } from 'hono/client'
 import { useEffect, useState } from 'react'
-import type { SystemApi } from './api'
+import { SystemApi } from './api'
 
 /**
  * Client HTTP typé, déduit de la sous-application Hono du module.
