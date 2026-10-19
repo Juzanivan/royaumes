@@ -21,16 +21,22 @@
 | S13 | Les erreurs imprévues ne révèlent aucun détail technique au client | Gestionnaire `onError` de la racine de composition | `onError` consigne l'erreur dans les journaux du serveur et renvoie seulement `{ error: { code: 'INTERNAL', message: 'Erreur interne' } }` avec le code 500. Les messages de Better Auth ne sont pas affichés tels quels : la page de connexion les traduit à partir de leur code. | Conforme |
 | S14 | La déconnexion invalide la session sur le serveur | Réutilisation d'un cookie après déconnexion | Après `POST /api/auth/sign-out` avec l'origine de l'application (`{"success":true}`), le même cookie, réutilisé, reçoit une erreur 401 `UNAUTHENTICATED` : la session n'existe plus en base. | Conforme |
 | S15 | Une requête d'authentification accompagnée d'un cookie et émise depuis une autre origine est refusée | Appel de la déconnexion avec un en-tête `origin` étranger | Avec `origin: http://site-malveillant.example`, la déconnexion est refusée (`INVALID_ORIGIN`) ; sans en-tête `origin`, elle l'est aussi (`MISSING_OR_NULL_ORIGIN`). La session reste valide après ces deux tentatives. | Conforme |
+| S16 | Un flux temps réel n'est accessible qu'aux joueurs connectés, et seulement pour les canaux auxquels ils ont droit | Tests « réserve le temps réel aux joueurs connectés (401) », « refuse l'écoute du village d'un autre joueur (403) » et « refuse un canal qu'aucune règle ne couvre (403) » ; principe de l'accès fermé par défaut dans `channel-policy.ts` | Un visiteur anonyme reçoit une erreur 401, un joueur qui tente d'écouter le village d'un autre joueur une erreur 403. Un canal sans règle est refusé : l'oubli d'une règle par un module futur rend ses canaux inaccessibles, et non publics. | Conforme |
 
 ## Synthèse
 
-Sur quinze exigences : treize sont conformes, une est en risque accepté (S9, justifiée
-ci-dessus), et une reste à vérifier en production (S6), ce qui ne sera possible qu'après le
-déploiement du TD5. Aucune exigence n'est non conforme.
+Sur seize exigences : quatorze sont conformes, une est en risque accepté (S9, justifiée
+ci-dessus), et une reste à vérifier en production (S6). Aucune exigence n'est non conforme.
+
+S16 a été ajoutée au TD5, lorsque le temps réel a ouvert une nouvelle voie d'accès aux
+données du jeu.
 
 Actions décidées :
 
-- vérifier S6 après le déploiement sur Vercel (TD5) ;
-- consigner dans le registre de la dette technique le partage imparfait des compteurs de
+- vérifier S6 sur le déploiement Vercel : le cookie doit se nommer
+  `__Secure-better-auth.session_token` et porter l'attribut `Secure` ; la ligne passera
+  alors au statut « conforme » ;
+- conserver dans le registre de la dette technique le partage imparfait des compteurs de
   la limitation des tentatives entre instances (DT-004) ;
-- accompagner chaque futur module protégé d'un test de contrôle d'accès (S10).
+- accompagner chaque futur module protégé d'un test de contrôle d'accès (S10), et chaque
+  futur canal temps réel d'une règle d'accès et de son test (S16).
