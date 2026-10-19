@@ -10,14 +10,13 @@ const PUBLIC_ENTRIES = '^src/modules/[^/]+/(index\\.ts|contracts\\.ts|ui\\.tsx)$
 module.exports = {
   forbidden: [
     {
-      // Règle 1, vue depuis un module : il n'atteint un autre module que par ses entrées publiques.
-      // « $1 » reprend le nom du module d'origine, capturé dans « from ».
-      name: 'module-encapsulation',
-      comment:
-        "Un module n'importe jamais l'intérieur d'un autre module, seulement ses entrées publiques.",
+      // Règle 2 bis : la couche application ne dépend que du domaine et de ses propres ports,
+      // jamais des adaptateurs de l'infrastructure (architecture hexagonale).
+      name: 'application-ignores-infrastructure',
+      comment: "La couche application d'un module n'importe jamais son infrastructure.",
       severity: 'error',
-      from: { path: '^src/modules/([^/]+)/' },
-      to: { path: '^src/modules/[^/]+/', pathNot: ['^src/modules/$1/', PUBLIC_ENTRIES] },
+      from: { path: '^src/modules/([^/]+)/application/' },
+      to: { path: '^src/modules/$1/infrastructure/' },
     },
     {
       // Règle 1, vue depuis le reste du projet (pages, racine de composition, plateforme).

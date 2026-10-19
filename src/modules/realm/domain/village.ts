@@ -8,7 +8,9 @@ import {
   BUILDINGS,
   type Building,
   CATALOG,
+  COST_EXPONENT,
   type Levels,
+  MAX_LEVEL,
   RESOURCES,
   type Resource,
   STARTING_LEVELS,
@@ -138,4 +140,112 @@ export function evolve(state: VillageState, event: VillageEvent): VillageState {
 /** Reconstruit l'état d'un village à partir de la suite de ses événements. */
 export function replay(events: VillageEvent[]): VillageState {
   return events.reduce(evolve, initialState)
+}
+
+// ---------------------------------------------------------------------------
+// Coût d'amélioration
+// ---------------------------------------------------------------------------
+
+/** Coût pour faire passer un bâtiment du niveau level au niveau level + 1. */
+export function upgradeCost(building: Building, level: number): Partial<Stock> {
+  const factor = (level + 1) ** COST_EXPONENT
+  const cost: Partial<Stock> = {}
+  for (const [resource, amount] of Object.entries(CATALOG[building].baseCost)) {
+    cost[resource as Resource] = Math.round((amount ?? 0) * factor)
+  }
+  return cost
+}
+
+/** Quantités manquantes pour payer un coût ; objet vide si le stock suffit. */
+function missingFor(stock: Stock, cost: Partial<Stock>): Partial<Stock> {
+  const missing: Partial<Stock> = {}
+  for (const [resource, amount] of Object.entries(cost)) {
+    const lack = (amount ?? 0) - stock[resource as Resource]
+    if (lack > 0) missing[resource as Resource] = Math.ceil(lack)
+  }
+  return missing
+}
+
+// ---------------------------------------------------------------------------
+// decide : vérifie une commande et en déduit les événements
+// ---------------------------------------------------------------------------
+
+export function decide(state: VillageState, command: VillageCommand, now: number): Decision {
+  switch (command.type) {
+    case 'FoundVillage':
+      if (state.founded) return { ok: false, error: { code: 'ALREADY_FOUNDED' } }
+      return {
+        ok: true,
+        events: [{ type: 'VillageFounded', data: { name: command.name, at: now } }],
+      }
+
+    case 'UpgradeBuilding': {
+      if (!state.founded) return { ok: false, error: { code: 'NOT_FOUNDED' } }
+      const level = state.levels[command.building]
+      if (level >= MAX_LEVEL) {
+        return { ok: false, error: { code: 'MAX_LEVEL_REACHED', building: command.building } }
+      }
+      // Le stock est évalué à l'instant de la commande, production comprise.
+      const current = accrue(state, now)
+      const cost = upgradeCost(command.building, level)
+      const missing = missingFor(current.stock, cost)
+      if (Object.keys(missing).length > 0) {
+        return { ok: false, error: { code: 'INSUFFICIENT_RESOURCES', missing } }
+      }
+      // Le coût est enregistré dans l'événement : si la règle de coût change
+      // plus tard, les améliorations passées resteront rejouées à l'identique.
+      return {
+        ok: true,
+        events: [
+          {
+            type: 'BuildingUpgraded',
+            data: { building: command.building, toLevel: level + 1, cost, at: now },
+          },
+        ],
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Vue : l'état présenté au joueur à un instant donné
+// ---------------------------------------------------------------------------
+
+export interface VillageView {
+  name: string
+  stock: Stock
+  levels: Levels
+  ratesPerMinute: Stock
+  /** Coût de la prochaine amélioration de chaque bâtiment ; null au niveau maximal. */
+  nextCosts: Record<Building, Partial<Stock> | null>
+  /** Instant auquel la vue a été calculée. */
+  asOf: number
+}
+
+export function toView(state: VillageState, now: number): VillageView {
+  const current = accrue(state, now)
+  const nextCosts = {} as Record<Building, Partial<Stock> | null>
+  for (const building of BUILDINGS) {
+    const level = current.levels[building]
+    nextCosts[building] = level >= MAX_LEVEL ? null : upgradeCost(building, level)
+  }
+  return {
+    name: current.name,
+    stock: current.stock,
+    levels: current.levels,
+    ratesPerMinute: productionPerMinute(current.levels),
+    nextCosts,
+    asOf: now,
+  }
+}
+
+/**
+ * Stock extrapolé à partir d'une vue, à un instant ultérieur.
+ * Utilisé par l'interface pour faire évoluer l'affichage sans interroger le serveur.
+ */
+export function stockAt(view: VillageView, at: number): Stock {
+  const minutes = Math.max(0, at - view.asOf) / 60_000
+  const stock = { ...view.stock }
+  for (const resource of RESOURCES) stock[resource] += view.ratesPerMinute[resource] * minutes
+  return stock
 }
