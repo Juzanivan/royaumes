@@ -18,15 +18,19 @@
 | D10 | Connaître l'adresse d'une expédition ne permet pas d'y agir sans en être membre | Action envoyée par un joueur qui n'est pas membre | Action envoyée depuis la console d'un joueur connecté non membre : erreur 403 `NOT_A_MEMBER`. Ce joueur peut en revanche consulter l'expédition, dont il connaît l'adresse : ce choix est volontaire, puisqu'il permet de rejoindre une expédition à partir de son adresse. La vue consultée ne contient que des informations publiques, et l'identifiant, un UUID tiré au hasard, ne peut pas être deviné. Risque accepté pour la consultation. | Risque accepté |
 | D11 | Aucun joueur ne peut agir au nom d'un compagnon ni écouter le canal en son nom | Test « présente le compagnon comme prêt, et ne le compte pas parmi les membres » ; fonction `isMember` de `rules.ts` | Le test réussit : un joueur dont l'identifiant serait celui d'un compagnon (`companion-1`) n'est pas membre. `isMember` (`rules.ts`) et le champ `isMember` de la vue écartent les héros `companion`, et la règle d'accès au canal s'appuie sur ce champ. Les actions sont toujours attribuées à `c.var.userId` (D5), et les identifiants des joueurs, attribués par Better Auth, ne peuvent pas prendre la forme `companion-<n>`. | Conforme |
 | D12 | L'intelligence artificielle ne transmet aux joueurs aucune information qu'ils n'auraient pas autrement | Lecture de `companion.ts` et `monster-strategies.ts` ; vue filtrée inchangée | `chooseCompanionAction` (`companion.ts`) ne reçoit que les héros et les monstres du début de la manche, sans les actions des joueurs. Les stratégies des monstres (`monster-strategies.ts`), qui connaissent ces actions, s'exécutent sur le serveur pendant la résolution ; leurs décisions et l'action des compagnons ne sont transmises qu'une fois la manche résolue, dans l'événement `RoundResolved` et le compte rendu `lastRound` de la vue. `view.ts` ne présente un compagnon que comme « prêt », sans son action, et le canal reste discret. | Conforme |
+| D13 | Le canal du classement ne transmet aucune donnée d'événement, en particulier la graine d'une expédition | Test « annonce sur son canal les événements du classement, sans leurs données » | Le test réussit : la règle du canal `ranking` est discrète (`redact: true`, dans `src/modules/ranking/index.ts`), et la réponse de la route de repli ne contient pas le mot `seed`. Les événements `GameCreated`, qui portent la graine, n'y apparaissent qu'avec des données vides. | Conforme |
+| D14 | Les informations transmises par le canal du classement sont déjà accessibles à tout joueur connecté | Lecture de la fonction `present` de `stream-api.ts` ; réponse de l'API du classement | `present` ne transmet que la position, le nom du flux, la version et le type de chaque événement. Le nom d'un flux contient l'identifiant d'un joueur (`village-<id>`) ou d'une expédition (`dungeon-<id>`). Les identifiants des joueurs figurent déjà dans la réponse de l'API du classement (`playerId`), mais seulement pour les vingt premiers : le canal révèle aussi ceux des joueurs suivants, sans rien permettre de faire avec eux (chaque joueur n'accède qu'à ses propres données, S11). Le canal révèle aussi les identifiants des expéditions déjà lancées, qui n'apparaissent plus dans la liste des expéditions ouvertes ; un identifiant d'expédition ne permet ni d'y agir (D10) ni d'écouter son canal (D3), seulement de la consulter, ce qui relève du risque déjà accepté en D10. L'écart est faible et sans conséquence sur le jeu : risque accepté. | Risque accepté |
 
 ## Synthèse
 
-Sur douze exigences : onze sont conformes, une est en risque accepté (D10, pour la seule
-consultation d'une expédition par un joueur qui n'en est pas membre, justifiée ci-dessus).
-Aucune exigence n'est non conforme.
+Sur quatorze exigences : douze sont conformes et deux sont en risque accepté (D10, pour la
+seule consultation d'une expédition par un joueur qui n'en est pas membre, et D14, pour les
+identifiants transmis par le canal du classement, justifiés ci-dessus). Aucune exigence
+n'est non conforme.
 
 Les exigences D11 et D12 ont été ajoutées au TD7, avec les compagnons et l'intelligence
-artificielle des monstres.
+artificielle des monstres, et les exigences D13 et D14 au TD8, avec le canal global du
+classement.
 
 Actions décidées :
 
@@ -35,4 +39,6 @@ Actions décidées :
 - évaluer le risque résiduel lié au rythme des notifications du canal discret (l'instant de
   chaque événement `ActionSubmitted` reste visible des membres) ;
 - conserver toute décision de l'intelligence artificielle qui exploite des informations
-  secrètes sur le serveur, et ne la transmettre qu'après la résolution de la manche.
+  secrètes sur le serveur, et ne la transmettre qu'après la résolution de la manche ;
+- réexaminer D14 si un identifiant de joueur ou d'expédition devient un jour suffisant pour
+  agir, par exemple dans une API qui accepterait un identifiant de joueur.
