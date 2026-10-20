@@ -16,16 +16,23 @@
 | D8 | L'échéance d'une manche est appréciée par l'horloge du serveur | Commande d'échéance envoyée avant l'échéance | Commande `POST /api/dungeon/games/<id>/deadline` envoyée depuis la console d'un membre avant la fin du compte à rebours : réponse 200, la vue reste à la manche 1, rien n'est enregistré. La manche est résolue à la fin du compte à rebours. | Conforme |
 | D9 | Une action destinée à une manche déjà résolue est refusée | Test « refuse un choix pour une manche déjà résolue » | Le test réussit : l'erreur `ROUND_OVER` indique la manche en cours. | Conforme |
 | D10 | Connaître l'adresse d'une expédition ne permet pas d'y agir sans en être membre | Action envoyée par un joueur qui n'est pas membre | Action envoyée depuis la console d'un joueur connecté non membre : erreur 403 `NOT_A_MEMBER`. Ce joueur peut en revanche consulter l'expédition, dont il connaît l'adresse : ce choix est volontaire, puisqu'il permet de rejoindre une expédition à partir de son adresse. La vue consultée ne contient que des informations publiques, et l'identifiant, un UUID tiré au hasard, ne peut pas être deviné. Risque accepté pour la consultation. | Risque accepté |
+| D11 | Aucun joueur ne peut agir au nom d'un compagnon ni écouter le canal en son nom | Test « présente le compagnon comme prêt, et ne le compte pas parmi les membres » ; fonction `isMember` de `rules.ts` | Le test réussit : un joueur dont l'identifiant serait celui d'un compagnon (`companion-1`) n'est pas membre. `isMember` (`rules.ts`) et le champ `isMember` de la vue écartent les héros `companion`, et la règle d'accès au canal s'appuie sur ce champ. Les actions sont toujours attribuées à `c.var.userId` (D5), et les identifiants des joueurs, attribués par Better Auth, ne peuvent pas prendre la forme `companion-<n>`. | Conforme |
+| D12 | L'intelligence artificielle ne transmet aux joueurs aucune information qu'ils n'auraient pas autrement | Lecture de `companion.ts` et `monster-strategies.ts` ; vue filtrée inchangée | `chooseCompanionAction` (`companion.ts`) ne reçoit que les héros et les monstres du début de la manche, sans les actions des joueurs. Les stratégies des monstres (`monster-strategies.ts`), qui connaissent ces actions, s'exécutent sur le serveur pendant la résolution ; leurs décisions et l'action des compagnons ne sont transmises qu'une fois la manche résolue, dans l'événement `RoundResolved` et le compte rendu `lastRound` de la vue. `view.ts` ne présente un compagnon que comme « prêt », sans son action, et le canal reste discret. | Conforme |
 
 ## Synthèse
 
-Sur dix exigences : neuf sont conformes, une est en risque accepté (D10, pour la seule
+Sur douze exigences : onze sont conformes, une est en risque accepté (D10, pour la seule
 consultation d'une expédition par un joueur qui n'en est pas membre, justifiée ci-dessus).
 Aucune exigence n'est non conforme.
+
+Les exigences D11 et D12 ont été ajoutées au TD7, avec les compagnons et l'intelligence
+artificielle des monstres.
 
 Actions décidées :
 
 - appliquer à tout futur canal d'un module le même examen : règle d'accès, canal discret
   si les événements contiennent des informations secrètes, et tests associés ;
 - évaluer le risque résiduel lié au rythme des notifications du canal discret (l'instant de
-  chaque événement `ActionSubmitted` reste visible des membres).
+  chaque événement `ActionSubmitted` reste visible des membres) ;
+- conserver toute décision de l'intelligence artificielle qui exploite des informations
+  secrètes sur le serveur, et ne la transmettre qu'après la résolution de la manche.
