@@ -116,6 +116,8 @@ export function createApi({
   // 4. Toute erreur non prévue produit une réponse JSON uniforme,
   //    sans divulguer de détail technique au client.
   app.onError((error, c) => {
+    // DETTE TECHNIQUE DT-009 (docs/qualite/dette-technique.md) : l'erreur complète, avec les
+    // paramètres d'une requête SQL qui échoue, peut écrire des données personnelles dans les journaux.
     console.error(error)
     return c.json({ error: { code: 'INTERNAL', message: 'Erreur interne' } }, 500)
   })

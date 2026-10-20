@@ -50,6 +50,8 @@ export function createMarketPersonalData(store: EventStore, db: Db): PersonalDat
     },
 
     // La table des offres en cours contient le nom du vendeur.
+    // DETTE TECHNIQUE DT-011 (docs/qualite/dette-technique.md) : les offres ouvertes du joueur
+    // effacé restent proposées, leurs ressources en séquestre, et peuvent encore être acceptées.
     async erase(playerId) {
       await db.update(offers).set({ sellerName: ERASED_NAME }).where(eq(offers.sellerId, playerId))
     },

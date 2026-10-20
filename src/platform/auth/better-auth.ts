@@ -53,6 +53,10 @@ function resolveSecret(): string {
 export function createBetterAuth(db: Db): AuthPort {
   const auth = betterAuth({
     // Les comptes et les sessions sont conservés dans la base du projet, par Drizzle.
+    // DETTE TECHNIQUE DT-008 (docs/qualite/dette-technique.md) : une session expirée n'est
+    // supprimée que si le navigateur la présente ; aucune tâche ne purge les autres.
+    // DETTE TECHNIQUE DT-010 (docs/qualite/dette-technique.md) : l'adresse IP et le navigateur
+    // sont enregistrés dans chaque session, sans qu'aucune fonctionnalité les utilise.
     database: drizzleAdapter(db, {
       provider: 'pg',
       schema: { user, session, account, verification },
