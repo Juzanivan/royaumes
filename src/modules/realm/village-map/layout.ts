@@ -19,8 +19,8 @@ export const SLOTS: Record<Building, Pt> = {
 
 /**
  * Emplacement de chaque lieu du jeu : la tour du Donjon au pied des montagnes, derrière le
- * château ; la Taverne près de la porte sud, et le relais des caravanes sur le même chemin ;
- * les étals du Marché et le podium du Classement
+ * château ; la Taverne près de la porte sud, en retrait de la route des caravanes, qui part du
+ * relais ; les étals du Marché et le podium du Classement
  * de part et d'autre de la route de l'est. Les emplacements sont choisis pour que, vus en
  * perspective, aucun lieu ne masque un bâtiment ni le château.
  */
@@ -28,7 +28,7 @@ export const LANDMARKS: Record<DestinationKind, Pt> = {
   dungeon: [3.4, 1.6],
   ranking: [9.9, 7.7],
   market: [9.5, 5.0],
-  tavern: [4.9, 9.8],
+  tavern: [4.75, 8.55],
   caravan: [2.75, 9.8],
 }
 
