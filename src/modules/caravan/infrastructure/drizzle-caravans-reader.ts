@@ -30,6 +30,8 @@ export function createDrizzleCaravansReader(db: Db, projections: ProjectionRunne
       return rows.map(
         (row): CaravanSummary => ({
           caravanId: row.caravanId,
+          // Règle 1 : seule une expédition a pour destinataire son propre expéditeur.
+          mission: row.senderId === row.recipientId ? 'expedition' : 'delivery',
           role: row.senderId === viewerId ? 'sender' : 'recipient',
           senderName: row.senderName,
           recipientName: row.recipientName,

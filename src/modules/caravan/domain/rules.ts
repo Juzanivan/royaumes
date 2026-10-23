@@ -35,6 +35,20 @@ export const totalOf = (cargo: Cargo) =>
 export const travelTimeOf = (cargo: Cargo) =>
   BASE_TRAVEL_MS + Math.floor(totalOf(cargo) / 10) * TRAVEL_MS_PER_10_UNITS
 
+/**
+ * Règle 13 : provisions d'une expédition vers la grotte, prélevées au départ et jamais rendues,
+ * comme le prix de l'escorte.
+ */
+export const EXPEDITION_PROVISIONS: Cargo = { wood: 30 }
+
+/**
+ * Règle 14 : durées d'une expédition. L'aller et le retour durent 30 secondes chacun, et
+ * l'exploration de la grotte une minute ; l'heure du retour est fixée au départ.
+ */
+export const EXPEDITION_LEG_MS = 30_000
+export const EXPLORATION_MS = 60_000
+export const EXPEDITION_MS = 2 * EXPEDITION_LEG_MS + EXPLORATION_MS
+
 /** Retire les ressources nulles d'une cargaison. */
 export function compact(cargo: Cargo): Cargo {
   const result: Cargo = {}
@@ -49,6 +63,9 @@ export function compact(cargo: Cargo): Cargo {
 export function loadOf(cargo: Cargo, escort: Escort): Cargo {
   return compact({ ...cargo, gold: (cargo.gold ?? 0) + ESCORT_PRICE[escort] })
 }
+
+/** Règle 13 : ressources prélevées au départ d'une expédition, provisions et escorte. */
+export const expeditionLoadOf = (escort: Escort) => loadOf(EXPEDITION_PROVISIONS, escort)
 
 /**
  * Règle 9 : partage d'une cargaison attaquée. Les brigands emportent la moitié de chaque

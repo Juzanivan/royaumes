@@ -54,6 +54,28 @@ moins un test.
     plusieurs fois ou si un message est remis en double.
 12. Seuls l'expéditeur et le destinataire peuvent consulter une caravane.
 
+### Les expéditions vers la grotte (ajoutées après le premier cadrage)
+
+Une caravane peut aussi partir en expédition vers la grotte. Elle part à vide, l'explore, et
+rapporte ce qu'elle y a trouvé à son expéditeur. Le choix de modélisation est consigné dans
+l'ADR 0013.
+
+13. Une expédition emporte 30 unités de bois de provisions, et son escorte, payée au même prix
+    que pour une caravane. Provisions et escorte sont prélevées avant le départ, et ne sont
+    jamais rendues. Si le village ne dispose pas de ces ressources, l'expédition est annulée.
+    Elle compte parmi les 3 caravanes en route de la règle 3.
+14. Une expédition met 30 secondes à atteindre la grotte, l'explore pendant une minute, et met
+    30 secondes à rentrer. L'heure du retour est fixée au départ. Les brigands ne l'attaquent
+    pas.
+15. Le butin est décidé par une règle déterministe, à partir de la graine de l'expédition. Elle
+    revient bredouille avec une probabilité de 40 % sans escorte, 20 % avec des gardes et 5 %
+    avec des chevaliers. Sinon, elle rapporte de 20 à 60 bois, de 10 à 40 pierres et de 0 à 20
+    pièces d'or, multipliés par 1, 1,5 ou 2,5 selon l'escorte, et arrondis à l'entier
+    inférieur.
+16. Le butin reste secret jusqu'au retour de l'expédition : aucune lecture ne le révèle avant.
+17. Au retour, le butin est versé à l'expéditeur, une seule fois. Une expédition revenue
+    bredouille ne verse rien. Seul l'expéditeur peut consulter son expédition.
+
 ## Les commandes et les lectures
 
 | Action du joueur | Commande ou lecture | Route envisagée |
@@ -62,6 +84,7 @@ moins un test.
 | Envoyer une caravane | Commande `send` | `POST /api/caravans` |
 | Voir ses caravanes envoyées et attendues | Lecture | `GET /api/caravans` |
 | Suivre une caravane, sur sa vue de profil | Lecture | `GET /api/caravans/:id`, page `/caravan/:id` |
+| Partir en expédition vers la grotte | Commande `explore` | `POST /api/caravans/expeditions` |
 
 L'attaque et l'arrivée ne sont pas des actions du joueur. Elles sont constatées à leur
 échéance, à la première lecture qui la dépasse, et à défaut par un rappel différé de la

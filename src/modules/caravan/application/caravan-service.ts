@@ -171,6 +171,27 @@ export function createCaravanService(
     return { caravanId, result: await viewOf(caravanId, player.id) }
   }
 
+  /**
+   * Fait partir une caravane en expédition vers la grotte, au nom d'un joueur (règle 13). Comme
+   * un envoi, la saga a progressé jusqu'au départ, ou jusqu'à l'annulation, à son retour.
+   */
+  async function explore(player: Player, { escort }: { escort: Escort }) {
+    await resolveFor(player.id)
+    const caravanId = newId()
+    // DETTE TECHNIQUE DT-016 : même décompte hors transaction que pour un envoi.
+    const decision = await process(caravanId, {
+      type: 'SendExpedition',
+      caravanId,
+      sender: player,
+      escort,
+      seed: newSeed(),
+      inTransit: await reader.inTransit(player.id),
+    })
+    if (!decision.ok) return { caravanId, result: decision as CommandResult }
+    await dispatch()
+    return { caravanId, result: await viewOf(caravanId, player.id) }
+  }
+
   /** Vue d'une caravane : son issue est d'abord constatée, si son heure est passée. */
   async function getView(caravanId: string, viewerId: string): Promise<CommandResult> {
     const { state } = await repo.load(caravanId)
@@ -199,7 +220,7 @@ export function createCaravanService(
     if (!decision.ok) throw new Error(`Caravane ${caravanId} : ${decision.error.code}`)
   }
 
-  return { send, getView, list, destinations, step }
+  return { send, explore, getView, list, destinations, step }
 }
 
 /** Type du service, déduit de sa fabrique. */

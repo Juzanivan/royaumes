@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import type { AppEnv } from '@/platform/http/types'
 import { validateJson } from '@/platform/http/validate'
 import type { CaravanService, CommandResult } from './application/caravan-service'
-import { type CaravanError, SendCaravanInput } from './contracts'
+import { type CaravanError, SendCaravanInput, SendExpeditionInput } from './contracts'
 
 /** Code HTTP associé à chaque erreur métier. */
 const STATUS: Record<CaravanError['code'], 400 | 404 | 409> = {
@@ -43,6 +43,14 @@ export function createCaravanApi(service: CaravanService) {
       .post('/', validateJson(SendCaravanInput), async (c) => {
         const player = { id: c.var.userId, name: c.var.userName }
         const { caravanId, result } = await service.send(player, c.req.valid('json'))
+        const { body, status } = reply(result)
+        return result.ok ? c.json({ caravanId, ...body }, 201) : c.json(body, status)
+      })
+
+      // Départ d'une expédition vers la grotte.
+      .post('/expeditions', validateJson(SendExpeditionInput), async (c) => {
+        const player = { id: c.var.userId, name: c.var.userName }
+        const { caravanId, result } = await service.explore(player, c.req.valid('json'))
         const { body, status } = reply(result)
         return result.ok ? c.json({ caravanId, ...body }, 201) : c.json(body, status)
       })

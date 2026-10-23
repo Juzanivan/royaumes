@@ -554,3 +554,16 @@ main:has(.journey) .topbar { position: relative; z-index: 2; margin-bottom: 0; p
 .vmap-upgrade-hint path { fill: #fff; }
 @keyframes vmap-hint { from { transform: translateY(0); } to { transform: translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) { .vmap-upgrade-hint { animation: none; } }
+
+/* Expédition vers la grotte : l'escorte y entre, ses lanternes s'y déplacent, les cristaux scintillent. */
+.journey-explorers { transition: opacity 1.4s ease, transform 1.4s ease; }
+.journey-explorers.is-exploring { opacity: 0; transform: translateX(120px); }
+.journey-cave-inside { opacity: 0; transition: opacity 1.2s ease 0.8s; }
+.journey-cave-inside.is-exploring { opacity: 1; }
+.journey-cave-light { animation: journey-wander 5s ease-in-out infinite alternate; }
+.journey-crystal { fill: #8fe3ff; animation: journey-sparkle 2.4s ease-in-out infinite; }
+.journey-torch { fill: #ffb347; filter: var(--place-light); transform-box: fill-box; transform-origin: 50% 100%; animation: journey-flicker 0.5s ease-in-out infinite alternate; }
+@keyframes journey-wander { 0% { transform: translate(0, 0); } 50% { transform: translate(40px, -18px); } 100% { transform: translate(-30px, 10px); } }
+@keyframes journey-sparkle { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+@keyframes journey-flicker { from { transform: scale(1, 1); } to { transform: scale(0.9, 1.12); } }
+.journey[data-phase='returned'] .journey-caption { color: var(--ok); font-weight: 700; }

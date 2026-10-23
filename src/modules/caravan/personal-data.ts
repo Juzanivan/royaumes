@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { and, eq, ne } from 'drizzle-orm'
 import type { Db } from '@/platform/db/client'
 import type { EventStore } from '@/platform/event-store/event-store'
 import {
@@ -14,7 +14,7 @@ import { caravans, destinations } from './infrastructure/schema'
 /**
  * Données personnelles de la Caravane : l'identifiant et le nom de l'expéditeur, et
  * l'identifiant et le nom du village du destinataire, copiés dans l'événement d'envoi de
- * chaque caravane et dans le modèle de lecture.
+ * chaque caravane et dans le modèle de lecture ; celui de l'expéditeur, pour une expédition.
  */
 export function createCaravanPersonalData(store: EventStore, db: Db): PersonalDataContributor {
   return {
@@ -38,9 +38,12 @@ export function createCaravanPersonalData(store: EventStore, db: Db): PersonalDa
     },
 
     redact(event, playerId) {
-      if (!event.stream.startsWith(CARAVAN_STREAM_PREFIX) || event.type !== 'CaravanSent') {
-        return null
+      if (!event.stream.startsWith(CARAVAN_STREAM_PREFIX)) return null
+      if (event.type === 'ExpeditionSent') {
+        const own = event.data.senderId === playerId && event.data.senderName !== ERASED_NAME
+        return own ? { ...event.data, senderName: ERASED_NAME } : null
       }
+      if (event.type !== 'CaravanSent') return null
       const data = { ...event.data }
       if (data.senderId === playerId) data.senderName = ERASED_NAME
       if (data.recipientId === playerId) data.recipientName = ERASED_VILLAGE
@@ -59,7 +62,8 @@ export function createCaravanPersonalData(store: EventStore, db: Db): PersonalDa
       await db
         .update(caravans)
         .set({ recipientName: ERASED_VILLAGE })
-        .where(eq(caravans.recipientId, playerId))
+        // Une expédition n'a pas d'autre destinataire que la grotte, dont le nom reste.
+        .where(and(eq(caravans.recipientId, playerId), ne(caravans.senderId, playerId)))
       await db.delete(destinations).where(eq(destinations.playerId, playerId))
     },
   }

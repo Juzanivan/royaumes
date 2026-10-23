@@ -2,11 +2,13 @@
  * Vue d'une caravane : ce qu'en voit un joueur donné. Elle ne contient jamais la graine des
  * brigands, et ne révèle l'issue du voyage qu'une fois celle-ci constatée (règles 7 et 12).
  */
-import type { CaravanState, CaravanStatus } from './caravan'
+import type { CaravanState, CaravanStatus, Mission } from './caravan'
 import type { Cargo, Escort } from './rules'
 
 export interface CaravanView {
   caravanId: string
+  /** Livraison à un autre joueur, ou expédition vers la grotte. */
+  mission: Mission
   /** Rôle du joueur qui consulte la vue. */
   role: 'sender' | 'recipient'
   senderName: string
@@ -23,6 +25,8 @@ export interface CaravanView {
   returned: Cargo | null
   /** Ressources manquantes, pour l'expéditeur d'une caravane annulée. */
   missing: Cargo | null
+  /** Au retour d'une expédition seulement : le butin rapporté de la grotte (règle 16). */
+  loot: Cargo | null
 }
 
 /** Vue d'une caravane pour un joueur ; null s'il n'en est ni l'expéditeur ni le destinataire. */
@@ -34,6 +38,7 @@ export function toView(state: CaravanState, viewerId: string): CaravanView | nul
   const ambushed = state.status === 'ambushed'
   return {
     caravanId: state.caravanId,
+    mission: state.mission,
     role,
     senderName: state.senderName,
     recipientName: state.recipientName,
@@ -47,5 +52,6 @@ export function toView(state: CaravanState, viewerId: string): CaravanView | nul
     stolen: ambushed ? state.stolen : null,
     returned: ambushed ? state.returned : null,
     missing: state.status === 'cancelled' && role === 'sender' ? state.missing : null,
+    loot: state.status === 'returned' ? state.loot : null,
   }
 }

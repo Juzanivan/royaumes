@@ -4,7 +4,7 @@
  * service les traduit en messages de la boîte d'envoi.
  */
 import { type CaravanEvent, type CaravanState, outcomeOf, transferIdOf } from './caravan'
-import { type Cargo, loadOf } from './rules'
+import { type Cargo, expeditionLoadOf, loadOf, totalOf } from './rules'
 
 /** Demande produite par une étape de la saga. */
 export type SagaRequest =
@@ -61,5 +61,29 @@ export function requestsFor(state: CaravanState, event: CaravanEvent): SagaReque
     // Annulation : rien n'a été prélevé, rien n'est à compenser.
     case 'CaravanCancelled':
       return []
+
+    // Expédition : prélèvement des provisions et du prix de l'escorte (règle 13).
+    case 'ExpeditionSent':
+      return [
+        {
+          kind: 'withdraw',
+          transferId: transferIdOf(state.caravanId, 'load'),
+          playerId: state.senderId,
+          resources: expeditionLoadOf(state.escort),
+        },
+      ]
+
+    // Retour de la grotte : le butin est versé à l'expéditeur, s'il y en a un (règle 17).
+    case 'ExpeditionReturned':
+      return totalOf(event.data.loot) === 0
+        ? []
+        : [
+            {
+              kind: 'deposit',
+              transferId: transferIdOf(state.caravanId, 'loot'),
+              playerId: state.senderId,
+              resources: event.data.loot,
+            },
+          ]
   }
 }

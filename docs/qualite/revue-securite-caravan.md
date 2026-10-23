@@ -20,11 +20,12 @@
 | C10 | Un message remis plusieurs fois n'a d'effet qu'une fois | Test du domaine « n'applique l'issue qu'une fois, malgré les constats répétés et les messages en double » ; tests d'idempotence du Village (TD9) | Le test réussit : une réponse du Village en double ou tardive, un rappel arrivé après l'issue et un second constat ne produisent aucun événement. Les clés `<caravane>:load`, `:deliver` et `:return` sont construites par le domaine ; le Village ignore un mouvement déjà traité. | Conforme |
 | C11 | Aucun joueur ne peut provoquer un mouvement de ressources par la Caravane autrement que par l'envoi d'une caravane | Lecture de `api.ts`, `messages.ts` et `saga.ts` | Seul `requestsFor` produit des messages, à partir des événements d'une caravane. Les gestionnaires (`caravan.transfer-result`, `caravan.resolve`) ne sont remis que par le distributeur, et aucune route ne les expose. | Conforme |
 | C12 | Les données personnelles de la Caravane sont exportées et effacées avec le compte | Test « exporte les caravanes du joueur, et efface son nom à la suppression de son compte » ; tests de `personal-data.test.ts` | Les tests réussissent : l'export de Bob contient la caravane qu'il attend ; après la suppression de son compte, le journal, la liste des caravanes et les destinations ne contiennent plus le nom de son village. | Conforme |
+| C14 | Le butin d'une expédition n'est révélé qu'à son retour, et à son seul expéditeur | Test du domaine « ne révèle pas son butin avant son retour » ; test de l'API « part en expédition vers la grotte… » | Les tests réussissent : avant le retour, la vue présente `loot: null` et aucune graine ; Bob reçoit 404 sur l'expédition d'Alice ; le butin n'est versé qu'une fois, et seulement s'il n'est pas vide. Le corps de la requête ne contient que l'escorte, validée par `z.enum`. | Conforme |
 | C13 | L'heure de l'attaque n'est connue que du serveur | Lecture de `caravan-service.ts` (`toMessage`) et de `platform.outbox` | Le rappel différé est enregistré dans la boîte d'envoi avec une date de disponibilité égale à l'heure de l'issue : un administrateur de la base pourrait en déduire l'issue. Aucune route ne l'expose aux joueurs. | Risque accepté |
 
 ## Synthèse
 
-Sur treize exigences : onze sont conformes, deux sont en risque accepté (C4 et C13), aucune
+Sur quatorze exigences : douze sont conformes, deux sont en risque accepté (C4 et C13), aucune
 n'est non conforme.
 
 Les deux risques acceptés ne permettent à aucun joueur de créer des ressources ni de
@@ -36,6 +37,6 @@ Actions décidées :
 
 - rembourser DT-016 en vérifiant la limite dans la transaction d'envoi (verrou sur un flux
   propre à l'expéditeur, ou contrainte en base), avant toute ouverture à des joueurs réels ;
-- appliquer à tout futur type de caravane (expédition) le même examen : graine absente des
-  vues, issue révélée à son heure, conservation des ressources testée ;
+- appliquer à toute future mission de caravane le même examen que celui des expéditions
+  (C14) : graine absente des vues, issue révélée à son heure, versement appliqué une fois ;
 - ne jamais ajouter de route qui accepte une heure ou une issue fournie par le client.

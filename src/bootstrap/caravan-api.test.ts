@@ -8,6 +8,7 @@ import type {
   Escort,
 } from '@/modules/caravan/contracts'
 import { brigandsPlan } from '@/modules/caravan/domain/brigands'
+import { caveLoot } from '@/modules/caravan/domain/cave'
 import type { Stock } from '@/modules/realm/contracts'
 import { createTestApi, TEST_CRON_SECRET } from './testing'
 
@@ -247,5 +248,43 @@ describe('API du module Caravane', () => {
     const res = await api.get('/api/caravans/destinations')
     const { destinations } = (await res.json()) as { destinations: Destination[] }
     expect(destinations.map((d) => d.playerId)).toEqual(['carol'])
+  })
+
+  it("part en expédition vers la grotte, et ne verse le butin qu'à son retour", async () => {
+    const api = await caravansWithVillages()
+    const seed = (() => {
+      for (let s = 1; ; s++) if (Object.keys(caveLoot({ seed: s, escort: 'none' })).length) return s
+    })()
+    const loot = caveLoot({ seed, escort: 'none' })
+    api.setCaravanSeed(seed)
+    const res = await api.post('/api/caravans/expeditions', { escort: 'none' })
+    expect(res.status).toBe(201)
+    const body = (await res.json()) as { caravanId: string; view: CaravanView; now: number }
+    expect(body.view).toMatchObject({
+      mission: 'expedition',
+      status: 'travelling',
+      arrivesAt: body.now + 120_000,
+      loot: null,
+    })
+    expect(body.view).not.toHaveProperty('seed')
+    // Les provisions sont prélevées au départ.
+    expect(await gapWithCarol(api, 'alice')).toEqual({ wood: -30, stone: 0, gold: 0 })
+    // L'expédition est réservée à son expéditeur, et validée.
+    expect((await viewOf(api, body.caravanId, 'bob')).res.status).toBe(404)
+    expect((await api.post('/api/caravans/expeditions', { escort: 'army' })).status).toBe(400)
+
+    api.advance(2)
+    const list = (await (await api.get('/api/caravans')).json()) as CaravanList
+    expect(list.caravans[0]).toMatchObject({
+      mission: 'expedition',
+      status: 'returned',
+      cargo: loot,
+    })
+    expect((await viewOf(api, body.caravanId)).view.loot).toEqual(loot)
+    expect(await gapWithCarol(api, 'alice')).toEqual({
+      wood: (loot.wood ?? 0) - 30,
+      stone: loot.stone ?? 0,
+      gold: loot.gold ?? 0,
+    })
   })
 })

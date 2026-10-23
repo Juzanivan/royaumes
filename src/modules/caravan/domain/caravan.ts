@@ -2,15 +2,21 @@
  * Domaine de la Caravane : le voyage d'une cargaison d'un village à un autre, selon le modèle
  * decider. L'état d'une caravane résume l'avancement de sa saga avec le Village : chargement,
  * route, puis livraison ou attaque.
+ *
+ * Une caravane peut aussi partir en expédition vers la grotte (règles 13 à 17) : elle part à
+ * vide, l'explore, et rapporte à son expéditeur le butin qu'elle y a trouvé. Elle suit la même
+ * saga, dans le même flux ; son destinataire est son expéditeur.
  * Ce fichier est écrit en TypeScript pur : il n'importe aucun autre module.
  */
 import { brigandsPlan } from './brigands'
+import { CAVE_NAME, caveLoot } from './cave'
 import {
   CARAVAN_CAPACITY,
   CARGO_RESOURCES,
   type Cargo,
   ESCORTS,
   type Escort,
+  EXPEDITION_MS,
   MAX_IN_TRANSIT,
   splitLoot,
   totalOf,
@@ -23,9 +29,19 @@ import {
  * - travelling : la caravane est en route ;
  * - cancelled : le village ne disposait pas des ressources, rien n'est parti ;
  * - delivered : la cargaison a été livrée au destinataire ;
- * - ambushed : les brigands ont attaqué, le reste est rendu à l'expéditeur.
+ * - ambushed : les brigands ont attaqué, le reste est rendu à l'expéditeur ;
+ * - returned : l'expédition est revenue de la grotte, avec ou sans butin.
  */
-export type CaravanStatus = 'loading' | 'travelling' | 'cancelled' | 'delivered' | 'ambushed'
+export type CaravanStatus =
+  | 'loading'
+  | 'travelling'
+  | 'cancelled'
+  | 'delivered'
+  | 'ambushed'
+  | 'returned'
+
+/** Mission d'une caravane : livrer une cargaison à un autre joueur, ou explorer la grotte. */
+export type Mission = 'delivery' | 'expedition'
 
 // ---------------------------------------------------------------------------
 // État
@@ -34,6 +50,7 @@ export type CaravanStatus = 'loading' | 'travelling' | 'cancelled' | 'delivered'
 export interface CaravanState {
   /** Faux tant que la caravane n'a pas été envoyée. */
   exists: boolean
+  mission: Mission
   caravanId: string
   senderId: string
   senderName: string
@@ -55,10 +72,13 @@ export interface CaravanState {
   returned: Cargo
   /** Ressources qui manquaient à l'expéditeur, si la caravane a été annulée. */
   missing: Cargo
+  /** Butin rapporté de la grotte, au retour d'une expédition. */
+  loot: Cargo
 }
 
 export const initialState: CaravanState = {
   exists: false,
+  mission: 'delivery',
   caravanId: '',
   senderId: '',
   senderName: '',
@@ -75,6 +95,7 @@ export const initialState: CaravanState = {
   stolen: {},
   returned: {},
   missing: {},
+  loot: {},
 }
 
 // ---------------------------------------------------------------------------
@@ -100,6 +121,18 @@ export type CaravanEvent =
   | { type: 'CaravanDeparted'; data: { at: number; arrivesAt: number } }
   | { type: 'CaravanAmbushed'; data: { at: number; stolen: Cargo; returned: Cargo } }
   | { type: 'CaravanDelivered'; data: { at: number } }
+  | {
+      type: 'ExpeditionSent'
+      data: {
+        caravanId: string
+        senderId: string
+        senderName: string
+        escort: Escort
+        seed: number
+        at: number
+      }
+    }
+  | { type: 'ExpeditionReturned'; data: { at: number; loot: Cargo } }
 
 // ---------------------------------------------------------------------------
 // Commandes
@@ -126,6 +159,15 @@ export type CaravanCommand =
       escort: Escort
       seed: number
       /** Nombre de caravanes de l'expéditeur déjà en route. */
+      inTransit: number
+    }
+  // Commande du joueur : partir en expédition vers la grotte (règle 13).
+  | {
+      type: 'SendExpedition'
+      caravanId: string
+      sender: Party
+      escort: Escort
+      seed: number
       inTransit: number
     }
   // Commandes de la saga, issues des messages de la boîte d'envoi.
@@ -164,7 +206,7 @@ const accept = (...events: CaravanEvent[]): Decision => ({ ok: true, events })
  * Identifiant d'un mouvement de ressources, déterminé par la caravane et l'étape de la saga :
  * le Village s'en sert comme clé d'idempotence.
  */
-export const transferIdOf = (caravanId: string, step: 'load' | 'deliver' | 'return') =>
+export const transferIdOf = (caravanId: string, step: 'load' | 'deliver' | 'return' | 'loot') =>
   `${caravanId}:${step}`
 
 /** Identifiant de la caravane à laquelle se rapporte un mouvement. */
@@ -177,10 +219,12 @@ export const caravanIdOf = (transferId: string) => transferId.slice(0, transferI
 /**
  * Issue prévue d'une caravane en route : l'heure de l'attaque, ou celle de l'arrivée.
  * Elle est déduite de la graine ; elle ne doit être présentée à aucun joueur avant son heure.
+ * Les brigands n'attaquent pas une expédition, qui part à vide : son issue est son retour.
  */
 export function outcomeOf(
   state: CaravanState,
 ): { kind: 'ambush'; at: number } | { kind: 'arrival'; at: number } {
+  if (state.mission === 'expedition') return { kind: 'arrival', at: state.arrivesAt }
   const plan = brigandsPlan(state)
   if (!plan.attack) return { kind: 'arrival', at: state.arrivesAt }
   const duration = state.arrivesAt - state.departedAt
@@ -226,6 +270,22 @@ export function evolve(state: CaravanState, event: CaravanEvent): CaravanState {
       }
     case 'CaravanDelivered':
       return { ...state, status: 'delivered' }
+    case 'ExpeditionSent':
+      return {
+        ...initialState,
+        exists: true,
+        mission: 'expedition',
+        caravanId: event.data.caravanId,
+        senderId: event.data.senderId,
+        senderName: event.data.senderName,
+        recipientId: event.data.senderId,
+        recipientName: CAVE_NAME,
+        escort: event.data.escort,
+        seed: event.data.seed,
+        sentAt: event.data.at,
+      }
+    case 'ExpeditionReturned':
+      return { ...state, status: 'returned', loot: event.data.loot }
   }
 }
 
@@ -277,6 +337,25 @@ export function decide(state: CaravanState, command: CaravanCommand, now: number
     })
   }
 
+  if (command.type === 'SendExpedition') {
+    if (state.exists) return fail({ code: 'ALREADY_EXISTS' })
+    if (!ESCORTS.includes(command.escort)) return fail({ code: 'INVALID_ESCORT' })
+    if (command.inTransit >= MAX_IN_TRANSIT) {
+      return fail({ code: 'TOO_MANY_CARAVANS', max: MAX_IN_TRANSIT })
+    }
+    return accept({
+      type: 'ExpeditionSent',
+      data: {
+        caravanId: command.caravanId,
+        senderId: command.sender.id,
+        senderName: command.sender.name,
+        escort: command.escort,
+        seed: command.seed,
+        at: now,
+      },
+    })
+  }
+
   if (!state.exists) return fail({ code: 'CARAVAN_NOT_FOUND' })
 
   switch (command.type) {
@@ -309,7 +388,11 @@ function recordTransferResult(
   }
   return accept({
     type: 'CaravanDeparted',
-    data: { at: now, arrivesAt: now + travelTimeOf(state.cargo) },
+    // Règles 5 et 14 : l'heure d'arrivée, ou de retour de la grotte, est fixée au départ.
+    data: {
+      at: now,
+      arrivesAt: now + (state.mission === 'expedition' ? EXPEDITION_MS : travelTimeOf(state.cargo)),
+    },
   })
 }
 
@@ -322,6 +405,10 @@ function resolve(state: CaravanState, now: number): Decision | null {
   if (state.status !== 'travelling') return accept()
   const outcome = outcomeOf(state)
   if (now < outcome.at) return null
+  if (state.mission === 'expedition') {
+    // Règles 15 et 16 : le butin, déduit de la graine, n'est connu qu'au retour.
+    return accept({ type: 'ExpeditionReturned', data: { at: outcome.at, loot: caveLoot(state) } })
+  }
   if (outcome.kind === 'arrival') {
     return accept({ type: 'CaravanDelivered', data: { at: outcome.at } })
   }

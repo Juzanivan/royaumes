@@ -14,8 +14,8 @@ revues. Il s'adresse à la personne qui reprendrait le projet.
 | --- | --- |
 | Modules métier | 7 : `realm`, `dungeon`, `market`, `ranking`, `tavern`, `system`, et `caravan` (évaluation finale) |
 | Briques de la plateforme | 9 : `auth`, `cron`, `db`, `event-store`, `http`, `outbox`, `privacy`, `projection`, `realtime` ; et un service extrait, `src/services/village` (82 lignes) |
-| Lignes de code, hors tests | 16 365 (`src` et `app`), contre 8 266 à `td11-fin` : l'essentiel de la hausse vient de l'interface de jeu (scènes, carte du village, voyage de la caravane) |
-| Fichiers de test, nombre de tests | 41 fichiers, 278 tests (33 fichiers et 232 tests à `td11-fin`) |
+| Lignes de code, hors tests | 17 357 (`src` et `app`), contre 8 266 à `td11-fin` : l'essentiel de la hausse vient de l'interface de jeu (scènes, carte du village, voyage de la caravane) |
+| Fichiers de test, nombre de tests | 44 fichiers, 293 tests (33 fichiers et 232 tests à `td11-fin`) |
 | Commits | 79 à l'étiquette `td11-fin` ; voir `git rev-list --count eval-fin` |
 | Hébergement | Vercel (Francfort), base Neon (Francfort) |
 
@@ -27,7 +27,7 @@ revues. Il s'adresse à la personne qui reprendrait le projet.
 | `ranking` | Projection du journal | 459 |
 | `tavern` | Tables ordinaires | 678 |
 | `system` | Aucun | 73 |
-| `caravan` | Event Sourcing, projection des caravanes, saga avec le Village | 2 707, dont 1 300 environ pour la scène du voyage (`journey/`) |
+| `caravan` | Event Sourcing, projection des caravanes, saga avec le Village | 3 395, dont 1 000 environ pour les scènes du voyage et de l'expédition (`journey/`) |
 
 Les valeurs proviennent des commandes de la sous-partie 5.2 du TD11, exécutées sur l'état
 final du projet, le 2026-10-23.
@@ -48,16 +48,17 @@ final du projet, le 2026-10-23.
 | 0010 | Journal d'événements pour la Caravane | Saga, projection, effacement, Classement (B6) | A tenu : le Classement compte les caravanes livrées en lisant le journal, sans modifier la Caravane (projection v3). Le prix : une seconde projection à reconstruire, et un contributeur de données personnelles de plus. |
 | 0011 | Saga compensable avec le Village, langage publié pour le Classement | Tests de l'API (doublons, réponses tardives, accès au canal) | A tenu, en réutilisant sans modification les sujets `realm.withdraw` et `realm.deposit` du Marché. La limite de trois caravanes, lue hors transaction, est consignée (DT-016). |
 | 0012 | Issue décidée au départ par une IA déterministe et secrète, constatée sans tâche de fond | Simulation sur 2 000 graines (taux observé contre `attackChance`), revue C6 à C8 | A tenu : la jauge de risque affichée au joueur est la probabilité exacte du domaine, et la graine n'est jamais transmise. Le rappel différé de la boîte d'envoi révèle l'heure de l'issue à qui lit la base (C13, risque accepté). |
+| 0013 | Expéditions vers la grotte, mission de la caravane | Tests du domaine et de l'API, revue C14 | A tenu : saga, rappel, canal, limite et effacement réutilisés sans brique nouvelle, ni migration. Le prix : un agrégat qui distingue deux missions. |
 
 ## 3. La qualité
 
 | Caractéristique | Indicateur | Valeur | Appréciation |
 | --- | --- | --- | --- |
-| Adéquation fonctionnelle | Tests réussis ; couverture des domaines | 278 tests réussis ; domaines couverts à 99,8 % des lignes (506 sur 507), dont celui de la Caravane | Satisfaisante. Les règles du jeu sont presque entièrement vérifiées par des fonctions pures, et les parcours par des tests de l'API. |
+| Adéquation fonctionnelle | Tests réussis ; couverture des domaines | 293 tests réussis ; domaines couverts à 99,8 % des lignes (506 sur 507), dont celui de la Caravane | Satisfaisante. Les règles du jeu sont presque entièrement vérifiées par des fonctions pures, et les parcours par des tests de l'API. |
 | Efficacité des performances | Débit et p99 des lectures ; respect du budget | De 133 (Marché) à 222 (Village) requêtes par seconde ; p99 de 128 à 209 ms, sans erreur (`perf/apres.json`) | Satisfaisante en local : le budget (p99 < 500 ms, 20 connexions) est respecté avec une marge de 290 ms. Rien n'est mesuré en production, ni pour les flux temps réel. |
 | Fiabilité | Tests de concurrence, de reprise et d'idempotence ; messages abandonnés | Une douzaine de tests de concurrence, d'interruption, de doublon ou de reprise (journal, boîte d'envoi, projections, saga, service Village) ; aucun message abandonné en développement | Satisfaisante. Les accès simultanés, les remises en double et la panne d'un service sont couverts. La tâche quotidienne signale désormais les lettres mortes. |
-| Sécurité | Exigences des revues de sécurité | 53 exigences : 47 conformes, 5 en risque accepté, 1 à vérifier en production (S6) | Satisfaisante, sous réserve de S6, en attente depuis le TD5. La limitation des tentatives est partagée entre instances depuis le TD11 (DT-004). |
-| Maintenabilité | Règles d'architecture ; fonctions d'aptitude ; couverture | Aucune violation (`pnpm lint:archi`, 303 modules, 863 dépendances) ; 8 règles de dépendance et 2 fonctions d'aptitude ; 51 % des lignes couvertes au total, 90 % hors interface (97 % pour le serveur de la Caravane) | Bonne côté serveur. La baisse de la couverture totale (75 % à `td11-fin`) ne vient pas d'une perte de tests : l'interface est passée de 306 à environ 1 500 lignes mesurées, couvertes à 0,4 %. Une régression d'un écran ne serait détectée qu'à la main, ou par le test de bout en bout. |
+| Sécurité | Exigences des revues de sécurité | 54 exigences : 48 conformes, 5 en risque accepté, 1 à vérifier en production (S6) | Satisfaisante, sous réserve de S6, en attente depuis le TD5. La limitation des tentatives est partagée entre instances depuis le TD11 (DT-004). |
+| Maintenabilité | Règles d'architecture ; fonctions d'aptitude ; couverture | Aucune violation (`pnpm lint:archi`, 314 modules, 904 dépendances) ; 8 règles de dépendance et 2 fonctions d'aptitude ; 51 % des lignes couvertes au total, 90 % hors interface (97 % pour le serveur de la Caravane) | Bonne côté serveur. La baisse de la couverture totale (75 % à `td11-fin`) ne vient pas d'une perte de tests : l'interface est passée de 306 à environ 1 500 lignes mesurées, couvertes à 0,4 %. Une régression d'un écran ne serait détectée qu'à la main, ou par le test de bout en bout. |
 | Flexibilité | Extraction d'un module ; changement de base entre local et production | Village exécutable dans le processus ou dans un service, selon deux variables ; PGlite en local, Neon en production | Démontrée par la démonstration à deux processus et par le retour arrière sans migration. |
 
 ## 4. La dette technique
@@ -98,7 +99,7 @@ Leur échéance est liée à un événement, le réexamen de l'ADR 0009, et non 
 | Sécurité de l'authentification | 16 | 14 | S9 en risque accepté ; S6 à vérifier en production | Vérifier le cookie de session en production (S6) |
 | Sécurité du Donjon | 14 | 12 | D10 et D14 en risque accepté | Évaluer le rythme des notifications du canal discret ; réexaminer D14 si un identifiant devient suffisant pour agir |
 | Sécurité du Marché | 10 | 10 | Aucune | DT-007, remboursée au TD11 |
-| Sécurité de la Caravane | 13 | 11 | C4 (DT-016) et C13 en risque accepté | Rembourser DT-016 ; appliquer le même examen à tout nouveau type de voyage |
+| Sécurité de la Caravane | 14 | 12 | C4 (DT-016) et C13 en risque accepté | Rembourser DT-016 ; appliquer le même examen à tout nouveau type de voyage |
 | Conformité au RGPD | 10 | 7 | R8 et R9 non conformes ; R10 en risque accepté | DT-008 à DT-011, DT-015 ; passer à l'offre Pro de Vercel et accepter son DPA avant toute mise en service auprès de joueurs réels |
 
 Toutes les actions qui portent sur le code figurent au registre de la dette. Trois

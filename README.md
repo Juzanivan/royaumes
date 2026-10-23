@@ -81,7 +81,7 @@ Un module n'est accessible depuis l'extérieur que par ses entrées publiques : 
 | `ranking` | Classement des joueurs, construit à partir des événements du Village, du Donjon et de la Caravane | `/api/ranking` |
 | `market` | Marché : échanges de ressources entre joueurs, par une saga orchestrée | `/api/market` |
 | `tavern` | Taverne : salon de discussion commun et présence des joueurs, sans Event Sourcing | `/api/tavern` |
-| `caravan` | Caravane : envoi de ressources au village d'un autre joueur, avec escorte, attaques de brigands pilotés par l'ordinateur et saga compensable avec le Village ([fiche de cadrage](docs/evaluation/fiche-cadrage.md)) | `/api/caravans` |
+| `caravan` | Caravane : envoi de ressources au village d'un autre joueur, avec escorte, attaques de brigands pilotés par l'ordinateur, expéditions vers la grotte et saga compensable avec le Village ([fiche de cadrage](docs/evaluation/fiche-cadrage.md)) | `/api/caravans` |
 
 ## Temps réel
 
@@ -126,6 +126,8 @@ l'expéditeur, puis la verse au destinataire, ou rend ce qu'il en reste à l'exp
 une attaque de brigands. Ses messages sont distribués après chaque envoi et chaque
 consultation d'une caravane. L'issue d'un voyage est constatée à la première lecture qui
 dépasse son heure, ou à défaut par un rappel différé de la boîte d'envoi (ADR 0012).
+Une expédition vers la grotte suit la même saga, dans le même flux : elle prélève ses
+provisions au départ, et verse son butin à l'expéditeur à son retour (ADR 0013).
 
 ## Service Village extrait
 

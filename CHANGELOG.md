@@ -5,6 +5,17 @@ Les nouveautés de chaque version de Royaumes. Le format suit
 aux joueurs par le crieur public (`src/ui/patch-notes.ts`) : un test vérifie que les deux
 listes concordent.
 
+## [1.3] - 2026-10-23
+
+### Ajouté
+
+- Expéditions vers la grotte (`POST /api/caravans/expeditions`) : une caravane part à vide,
+  explore la grotte pendant une minute et rapporte un butin tiré de sa graine (règles 13 à 17
+  de la fiche de cadrage, ADR 0013).
+- Vue de profil de l'expédition : aller, attente devant la grotte pendant la fouille, retour,
+  puis butin dans le chariot.
+- Projection des caravanes en version 2, qui présente les expéditions.
+
 ## [1.2] - 2026-10-23
 
 Évaluation finale : le module Caravane.

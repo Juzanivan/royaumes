@@ -17,6 +17,17 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: '1.3',
+    date: '2026-10-23',
+    title: 'La Grotte aux Échos',
+    changes: [
+      'Depuis le relais, envoyez une caravane en expédition vers la Grotte aux Échos : 30 secondes d’aller, une minute de fouille, 30 secondes de retour.',
+      'Une expédition emporte 30 bois de provisions, et rapporte du bois, de la pierre et parfois de l’or.',
+      'Une escorte fouille mieux la grotte : les chevaliers rapportent deux fois et demie plus, et ne reviennent presque jamais bredouilles.',
+      'Suivez l’expédition jusqu’à l’entrée de la grotte, et découvrez son butin à son retour.',
+    ],
+  },
+  {
     version: '1.2',
     date: '2026-10-23',
     title: 'Les caravanes prennent la route',

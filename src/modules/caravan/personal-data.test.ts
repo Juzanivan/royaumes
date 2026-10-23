@@ -55,4 +55,27 @@ describe('Caravane - données personnelles', () => {
     const erased = { ...sent, data: { ...sent.data, senderName: ERASED_NAME } }
     expect(contributor.redact?.(erased, 'alice')).toBeNull()
   })
+
+  it("remplace le nom de l'expéditeur d'une expédition, mais pas celui de la grotte", () => {
+    const expedition: StoredEvent = {
+      ...sent,
+      stream: 'caravan-e1',
+      type: 'ExpeditionSent',
+      data: {
+        caravanId: 'e1',
+        senderId: 'alice',
+        senderName: 'Alice',
+        escort: 'none',
+        seed: 7,
+        at: 0,
+      },
+    }
+    expect(contributor.redact?.(expedition, 'alice')).toMatchObject({
+      senderName: ERASED_NAME,
+      seed: 7,
+    })
+    expect(contributor.redact?.(expedition, 'bob')).toBeNull()
+    const erased = { ...expedition, data: { ...expedition.data, senderName: ERASED_NAME } }
+    expect(contributor.redact?.(erased, 'alice')).toBeNull()
+  })
 })

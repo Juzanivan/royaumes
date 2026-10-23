@@ -5,6 +5,7 @@ import { ERASED_VILLAGE } from '@/platform/privacy/privacy'
 import type { Projection } from '@/platform/projection/projection'
 import { CARAVAN_STREAM_PREFIX } from '../contracts'
 import type { CaravanEvent } from '../domain/caravan'
+import { CAVE_NAME } from '../domain/cave'
 import { caravans, destinations } from './schema'
 
 /*
@@ -24,7 +25,8 @@ const idFrom = (event: StoredEvent, prefix: string) => event.stream.slice(prefix
  */
 export const caravansProjection: Projection = {
   name: 'caravans',
-  version: 1,
+  // Version 2 : ajout des expéditions vers la grotte.
+  version: 2,
   eventTypes: [
     'VillageFounded',
     'CaravanSent',
@@ -32,6 +34,8 @@ export const caravansProjection: Projection = {
     'CaravanDeparted',
     'CaravanAmbushed',
     'CaravanDelivered',
+    'ExpeditionSent',
+    'ExpeditionReturned',
   ],
 
   async apply(stored, tx) {
@@ -84,6 +88,24 @@ export const caravansProjection: Projection = {
         return
       case 'CaravanDelivered':
         await update({ status: 'delivered', endedAt: event.data.at })
+        return
+      // Une expédition est sa propre destinataire : elle part vers la grotte, à vide, et sa
+      // cargaison devient le butin rapporté, une fois revenue.
+      case 'ExpeditionSent':
+        await tx.insert(caravans).values({
+          caravanId,
+          senderId: event.data.senderId,
+          senderName: event.data.senderName,
+          recipientId: event.data.senderId,
+          recipientName: CAVE_NAME,
+          cargo: {},
+          escort: event.data.escort,
+          status: 'loading',
+          sentAt: event.data.at,
+        })
+        return
+      case 'ExpeditionReturned':
+        await update({ status: 'returned', endedAt: event.data.at, cargo: event.data.loot })
         return
     }
   },

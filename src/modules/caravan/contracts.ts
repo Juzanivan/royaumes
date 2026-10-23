@@ -5,16 +5,21 @@
  */
 import { z } from 'zod'
 import { ResourceAmounts } from '@/modules/realm/contracts'
-import type { CaravanStatus } from './domain/caravan'
+import type { CaravanStatus, Mission } from './domain/caravan'
 import { type Cargo, ESCORTS, type Escort } from './domain/rules'
 
 export { attackChance } from './domain/brigands'
-export type { CaravanError, CaravanStatus } from './domain/caravan'
+export type { CaravanError, CaravanStatus, Mission } from './domain/caravan'
+export { CAVE_NAME, EMPTY_CHANCE, LOOT_MULTIPLIER, LOOT_RANGES } from './domain/cave'
 export type { Cargo, Escort } from './domain/rules'
 export {
   CARAVAN_CAPACITY,
   ESCORT_PRICE,
   ESCORTS,
+  EXPEDITION_LEG_MS,
+  EXPEDITION_MS,
+  EXPEDITION_PROVISIONS,
+  EXPLORATION_MS,
   MAX_IN_TRANSIT,
   totalOf,
   travelTimeOf,
@@ -28,6 +33,9 @@ export const SendCaravanInput = z.object({
   escort: z.enum(ESCORTS),
 })
 
+/** Corps attendu pour partir en expédition vers la grotte : l'escorte seule. */
+export const SendExpeditionInput = z.object({ escort: z.enum(ESCORTS) })
+
 /** Village vers lequel une caravane peut être envoyée. */
 export interface Destination {
   playerId: string
@@ -37,11 +45,14 @@ export interface Destination {
 /** Caravane telle que la présente la liste d'un joueur. */
 export interface CaravanSummary {
   caravanId: string
+  /** Livraison à un autre joueur, ou expédition vers la grotte. */
+  mission: Mission
   /** Rôle du joueur qui consulte la liste. */
   role: 'sender' | 'recipient'
   senderName: string
-  /** Nom du village du destinataire. */
+  /** Nom du village du destinataire, ou de la grotte pour une expédition. */
   recipientName: string
+  /** Cargaison livrée ; pour une expédition, le butin, une fois revenue. */
   cargo: Cargo
   escort: Escort
   status: CaravanStatus
