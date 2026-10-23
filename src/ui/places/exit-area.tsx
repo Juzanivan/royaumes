@@ -58,7 +58,8 @@ export function ExitArea({
         </div>
       )}
       <p className="exit-tip" aria-hidden="true">
-        Cliquez sur le décor pour quitter le lieu · Échap
+        <span className="exit-tip-pointer">Cliquez sur le décor pour quitter le lieu · Échap</span>
+        <span className="exit-tip-touch">Touchez le décor ou la croix pour quitter le lieu</span>
       </p>
     </>
   )

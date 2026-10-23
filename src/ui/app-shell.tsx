@@ -9,7 +9,8 @@ import { PlaceBackdrop, placeFor } from './places'
  * autres lieux du jeu (src/ui/destinations.ts), et son château ouvre le menu du joueur.
  * Dans un lieu, le décor est peint en fond (src/ui/places/), et c'est lui qui ramène au
  * village : un clic à côté du parchemin, ou la touche Échap. Un lien d'évitement, invisible
- * tant qu'il n'a pas le focus, offre la même sortie au clavier et aux lecteurs d'écran.
+ * tant qu'il n'a pas le focus, offre la même sortie au clavier et aux lecteurs d'écran ; sur un
+ * écran tactile, une croix en haut à droite la rend visible.
  * Le passage du jour à la nuit se fait comme au village, par le soleil ou la lune du décor.
  */
 export function AppShell({ children }: { children: ReactNode }) {
@@ -20,6 +21,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     <>
       <Link href="/village" className="place-exit-link">
         Quitter le lieu et retourner au village
+      </Link>
+      {/* Sur un écran tactile, sans survol ni touche Échap, une croix rend la sortie visible. */}
+      <Link href="/village" className="place-close" aria-label="Retourner au village">
+        <span aria-hidden="true">✕</span>
       </Link>
       {place && <PlaceBackdrop kind={place} exit />}
       {place ? <div className="place-sheet">{children}</div> : children}
