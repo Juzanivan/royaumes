@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react'
 import { DESTINATIONS } from '@/ui/destinations'
-import { BUILDINGS, type Building, type Stock, type VillageView } from '../contracts'
+import { BUILDINGS, type Building, CATALOG, type Stock, type VillageView } from '../contracts'
 import { Castle } from './buildings/castle'
 import { MapBuilding } from './buildings/map-building'
 import { iso, ORIGIN_X } from './geometry/iso'
@@ -27,7 +27,7 @@ import { Paths } from './scenery/paths'
 import { Pond } from './scenery/pond'
 import { Sky } from './scenery/sky'
 import { type MapTraveller, Travellers } from './scenery/travellers'
-import { Villagers } from './scenery/villagers'
+import { villagerItems } from './scenery/villagers'
 
 /** Zone visible du dessin, dans le repère du SVG. */
 const VIEW = { x: 36, y: 24, width: 728, height: 462 }
@@ -35,9 +35,22 @@ const VIEW = { x: 36, y: 24, width: 728, height: 462 }
 const CELEBRATION_MS = 1600
 
 /**
+ * Production d'un bâtiment, telle que l'affiche le compteur de sa ressource : son débit, et
+ * l'instant où le stock atteint l'entier suivant, après le calcul de la vue.
+ */
+function productionOf(view: VillageView, building: Building) {
+  const resource = CATALOG[building].produces
+  const perMinute = view.ratesPerMinute[resource]
+  if (perMinute <= 0) return { perMinute: 0, anchor: view.asOf }
+  const toNext = 1 - (view.stock[resource] % 1)
+  return { perMinute, anchor: view.asOf + (toNext * 60_000) / perMinute }
+}
+
+/**
  * Vue en carte du village : une scène isométrique dessinée en SVG, dans laquelle chaque
  * bâtiment occupe un emplacement fixe et change d'apparence avec son niveau. La carte est
- * aussi la navigation du jeu : chaque lieu (Donjon, Classement, Marché, Taverne) y est un
+ * aussi la navigation du jeu : chaque lieu (Donjon, Classement, Marché, Taverne, relais des
+ * caravanes) y est un
  * bâtiment qui mène à sa page, et le château ouvre le menu du joueur.
  * Ce composant n'affiche que ce que contient la vue du village : il ne connaît aucune règle
  * du jeu, et délègue l'amélioration d'un bâtiment à l'écran qui l'affiche.
@@ -127,10 +140,13 @@ export function VillageMap({
           level={view.levels[b]}
           selected={selected === b}
           upgrading={upgrading.includes(b)}
+          production={productionOf(view, b)}
           onSelect={() => toggle(b)}
         />
       ),
     })),
+    // Les villageois sont triés avec les bâtiments : ils passent derrière ceux qui sont devant eux.
+    ...villagerItems(),
   ].sort((a, b) => a.depth - b.depth)
 
   return (
@@ -170,7 +186,6 @@ export function VillageMap({
           <Pond />
           {items.map((item) => item.node)}
           <Travellers travellers={travellers} />
-          <Villagers />
           {/* La palissade borde l'avant du terrain : elle passe devant tout ce qu'elle longe. */}
           <Palisade />
         </svg>

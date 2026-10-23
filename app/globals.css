@@ -212,7 +212,7 @@ body:has(.vmap) { overflow-x: hidden; }
 .vmap-flag { animation: vmap-wave 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: left center; }
 .vmap-lantern { animation: vmap-glow 2.2s ease-in-out infinite; }
 .vmap-sparkle { animation: vmap-twinkle 2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
-.vmap-float { font-size: 13px; font-weight: 700; paint-order: stroke; stroke: rgb(0 0 0 / 0.35); stroke-width: 3px; opacity: 0; animation: vmap-float 4s ease-out infinite; }
+.vmap-float { font-size: 13px; font-weight: 700; paint-order: stroke; stroke: rgb(0 0 0 / 0.35); stroke-width: 3px; opacity: 0; animation: vmap-float 1.4s ease-out forwards; }
 .vmap-float-wood { fill: #ffd29a; }
 .vmap-float-stone { fill: #eef1f5; }
 .vmap-float-gold { fill: #ffe066; }
@@ -227,9 +227,12 @@ body:has(.vmap) { overflow-x: hidden; }
 @keyframes vmap-wave { 50% { transform: skewY(8deg) scaleX(0.85); } }
 @keyframes vmap-glow { 50% { opacity: 0.55; } }
 @keyframes vmap-twinkle { 0%, 100% { opacity: 0; transform: scale(0.4); } 50% { opacity: 1; transform: scale(1); } }
+/* Chaque chiffre, recréé à chaque unité produite, monte puis s'efface. */
 @keyframes vmap-float { 0% { opacity: 0; transform: translateY(6px); } 15% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; transform: translateY(-26px); } }
 @keyframes vmap-ripple { 0% { transform: scale(0.4); opacity: 0.9; } 100% { transform: scale(1.4); opacity: 0; } }
 @keyframes vmap-walk { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+.vmap-walker-step { animation: vmap-step 0.42s ease-in-out infinite alternate; }
+@keyframes vmap-step { from { transform: translateY(0); } to { transform: translateY(-1.2px); } }
 @keyframes vmap-pulse { 50% { stroke-opacity: 0.3; } }
 @keyframes vmap-bounce { 0% { transform: scale(1); } 35% { transform: translateY(-10px); } 60% { transform: translateY(2px); } 100% { transform: none; } }
 @keyframes vmap-burst { from { transform: translate(0, 0); opacity: 1; } to { transform: translate(var(--dx), var(--dy)); opacity: 0; } }
@@ -495,4 +498,52 @@ main:has(.journey) .topbar { position: relative; z-index: 2; margin-bottom: 0; p
 
 @media (prefers-reduced-motion: reduce) {
   .journey *, .vmap-traveller * { animation: none !important; }
+}
+
+/* La mare vivante : canards, nénuphars, poissons et reflets. */
+.vmap-pond { cursor: pointer; outline: none; }
+.vmap-pond:focus-visible > ellipse:first-of-type { stroke: #ffe08a; stroke-width: 3; }
+.vmap-glint { fill: rgb(255 255 255 / 0.45); opacity: calc(1 - var(--stars)); transition: opacity 0.9s ease; }
+.vmap-moon-reflection { fill: #fff6c8; opacity: calc(var(--stars) * 0.85); transition: opacity 0.9s ease; }
+.vmap-moon-reflection ellipse { transform-box: fill-box; transform-origin: center; animation: vmap-shimmer 2.4s ease-in-out infinite alternate; }
+@keyframes vmap-shimmer { from { transform: scaleX(0.92); } to { transform: scaleX(1.08); } }
+.vmap-lily { animation: vmap-lily 5s ease-in-out infinite alternate; }
+@keyframes vmap-lily { from { transform: translate(0, 0); } to { transform: translate(1.5px, 0.5px); } }
+.vmap-reeds { transform-box: fill-box; transform-origin: 50% 100%; animation: vmap-sway 3.5s ease-in-out infinite alternate; }
+@keyframes vmap-sway { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+/* Les canards font le tour de la mare : ils nagent vers la droite au premier plan, puis
+   reviennent vers la gauche à l'arrière, et se retournent à mi-parcours. */
+.vmap-duck { offset-rotate: 0deg; animation: vmap-duck-swim 26s linear infinite; }
+.vmap-duck-turn { animation: vmap-duck-turn 26s steps(1, end) infinite; }
+.vmap-duck-bob { animation: vmap-duck-bob 1.2s ease-in-out infinite alternate; }
+@keyframes vmap-duck-swim { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+@keyframes vmap-duck-turn { 0% { transform: scaleX(1); } 50% { transform: scaleX(-1); } }
+@keyframes vmap-duck-bob { from { transform: translateY(0); } to { transform: translateY(-0.8px); } }
+/* Saut d'un poisson : il jaillit, décrit un arc et retombe ; des ronds marquent sa chute. */
+.vmap-fish-arc { animation: vmap-fish-arc 0.9s ease-in-out forwards; opacity: 0; }
+@keyframes vmap-fish-arc {
+  0% { transform: translate(-8px, 2px) rotate(-60deg); opacity: 1; }
+  50% { transform: translate(0, -16px) rotate(0deg); opacity: 1; }
+  95% { transform: translate(8px, 2px) rotate(60deg); opacity: 1; }
+  100% { transform: translate(8px, 2px) rotate(60deg); opacity: 0; }
+}
+.vmap-splash { fill: none; stroke: rgb(255 255 255 / 0.85); stroke-width: 1.4; opacity: 0; transform-box: fill-box; transform-origin: center; animation: vmap-splash 1.2s ease-out 0.7s forwards; }
+@keyframes vmap-splash { 0% { transform: scale(0.3); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
+/* Le saut automatique se répète toutes les neuf secondes. */
+.vmap-fish-auto :is(.vmap-fish-arc, .vmap-splash) { animation-iteration-count: infinite; animation-duration: 9s; }
+.vmap-fish-auto .vmap-fish-arc { animation-name: vmap-fish-arc-rare; }
+.vmap-fish-auto .vmap-splash { animation-name: vmap-splash-rare; animation-delay: 0s; }
+@keyframes vmap-fish-arc-rare {
+  0%, 100% { transform: translate(-8px, 2px) rotate(-60deg); opacity: 0; }
+  1% { opacity: 1; }
+  5% { transform: translate(0, -16px) rotate(0deg); opacity: 1; }
+  9.5% { transform: translate(8px, 2px) rotate(60deg); opacity: 1; }
+  10% { opacity: 0; }
+}
+@keyframes vmap-splash-rare { 0%, 9% { transform: scale(0.3); opacity: 0; } 10% { opacity: 1; } 22%, 100% { transform: scale(1.6); opacity: 0; } }
+.vmap-quack { animation: vmap-quack 1.4s ease-out forwards; }
+@keyframes vmap-quack { 0% { opacity: 0; transform: translateY(4px); } 15%, 75% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) {
+  .vmap-pond * { animation: none !important; }
+  .vmap-duck { offset-distance: 20%; }
 }

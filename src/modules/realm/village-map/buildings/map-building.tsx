@@ -21,18 +21,21 @@ export function MapBuilding({
   level,
   selected,
   upgrading,
+  production,
   onSelect,
 }: {
   building: Building
   level: number
   selected: boolean
   upgrading: boolean
+  /** Production par minute de sa ressource, et instant où une nouvelle unité s'ajoute au stock. */
+  production: { perMinute: number; anchor: number }
   onSelect: () => void
 }) {
   const [x, y] = SLOTS[building]
   const tier = tierOf(level)
   const { draw, badgeHeight } = BUILDING_ART[building]
-  const { produces, perMinute } = CATALOG[building]
+  const { produces } = CATALOG[building]
   const [gx, gy] = iso(x, y)
   const [bx, by] = iso(x, y, badgeHeight(tier))
   const classes = ['vmap-building', selected && 'is-selected', upgrading && 'is-upgrading']
@@ -58,13 +61,13 @@ export function MapBuilding({
       <ellipse className="vmap-halo" cx={gx} cy={gy + 4} rx={58} ry={26} />
       {tier === 0 ? <ConstructionSite x={x} y={y} /> : draw({ x, y, tier })}
       {upgrading && <UpgradeBurst px={gx} py={gy - 24} />}
-      {level > 0 && (
+      {level > 0 && production.perMinute > 0 && (
         <ProductionFloat
           px={gx + 16}
           py={by + 6}
           resource={produces}
-          perMinute={perMinute * level}
-          delay={(x * 0.7) % 3}
+          perMinute={production.perMinute}
+          anchor={production.anchor}
         />
       )}
       <LevelBadge px={bx} py={by} level={level} />
