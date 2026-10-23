@@ -18,6 +18,7 @@ import { BuildingPanel } from './panels/building-panel'
 import { FullscreenButton } from './panels/fullscreen-button'
 import { PlayerPanel } from './panels/player-panel'
 import { ResourceHud } from './panels/resource-hud'
+import { Celestial } from './scenery/celestial'
 import { Decor } from './scenery/decor'
 import { Ground } from './scenery/ground'
 import { Mountains } from './scenery/mountains'
@@ -156,6 +157,8 @@ export function VillageMap({
             </radialGradient>
           </defs>
           <Sky />
+          {/* L'astre est dessiné avant les montagnes : il se couche derrière elles. */}
+          <Celestial />
           <Mountains />
           <Ground />
           <Paths />

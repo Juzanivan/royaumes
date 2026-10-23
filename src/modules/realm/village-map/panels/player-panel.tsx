@@ -1,6 +1,6 @@
 import { PlayerMenu } from '@/ui/player-menu'
 
-/** Panneau du château : le menu du joueur (ses données, le thème, la déconnexion). */
+/** Panneau du château : le menu du joueur (ses données, la déconnexion). */
 export function PlayerPanel({
   villageName,
   userName,

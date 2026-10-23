@@ -1,3 +1,11 @@
+/*
+ * Couleurs du ciel déclarées comme propriétés typées : le navigateur peut alors les faire
+ * varier progressivement, lorsque le jour se change en nuit, au lieu de basculer d'un coup.
+ */
+@property --sky-top { syntax: '<color>'; inherits: true; initial-value: #9fd3f2; }
+@property --sky-bottom { syntax: '<color>'; inherits: true; initial-value: #e8f4fb; }
+@property --stars { syntax: '<number>'; inherits: true; initial-value: 0; }
+
 /* Palette du jeu : toute modification de l'apparence commence ici. */
 :root {
     --bg: #f6f1e7;
@@ -15,6 +23,7 @@
     --cloud: rgb(255 255 255 / 0.85);
     --scene-filter: none;
     color-scheme: light;
+    transition: --sky-top 0.9s ease, --sky-bottom 0.9s ease, --stars 0.9s ease;
     font-family: system-ui, sans-serif;
     color: var(--ink);
     background: var(--bg);
@@ -172,7 +181,7 @@ body:has(.vmap) { overflow-x: hidden; }
 .vmap:fullscreen { height: 100vh; margin: 0; display: flex; flex-direction: column; }
 .vmap:fullscreen .vmap-viewport { flex: 1; min-height: 0; }
 .vmap-viewport { width: 100%; height: 100%; }
-.vmap-scene { display: block; width: 100%; height: 100%; filter: var(--scene-filter); }
+.vmap-scene { display: block; width: 100%; height: 100%; filter: var(--scene-filter); transition: filter 0.9s ease; }
 .vmap-stars { fill: #fff7d6; opacity: var(--stars); }
 .vmap-cloud { fill: var(--cloud); animation: vmap-drift 90s linear infinite; }
 
@@ -286,3 +295,15 @@ body:has(.vmap) { overflow-x: hidden; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) .vmap-window { fill: #ffc85a; filter: drop-shadow(0 0 4px #ffb347); }
 }
+
+/* Astre du ciel : soleil le jour, lune la nuit ; un clic le fait se coucher derrière les montagnes. */
+.vmap-celestial { cursor: pointer; outline: none; }
+.vmap-celestial:hover, .vmap-celestial:focus-visible { filter: drop-shadow(0 0 10px rgb(255 230 150 / 0.9)); }
+.vmap-celestial.is-setting { animation: vmap-celestial-set ease-in forwards; }
+.vmap-celestial.is-rising { animation: vmap-celestial-rise ease-out both; }
+.vmap-sun-glow { fill: rgb(255 214 90 / 0.25); }
+.vmap-sun-rays line { stroke: #f5b82e; stroke-width: 3; stroke-linecap: round; }
+.vmap-sun-rays { animation: vmap-spin 30s linear infinite; }
+.vmap-moon-glow { fill: rgb(240 236 210 / 0.15); }
+@keyframes vmap-celestial-set { from { transform: translate(0, 0); } to { transform: translate(-40px, 175px); } }
+@keyframes vmap-celestial-rise { from { transform: translate(-40px, 175px); } to { transform: translate(0, 0); } }

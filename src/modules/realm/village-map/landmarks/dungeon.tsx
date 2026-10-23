@@ -24,7 +24,11 @@ export function Dungeon({ x, y }: { x: number; y: number }) {
       {merlons.map(({ mx, my }) => (
         <Merlon key={`${mx},${my}`} x={mx} y={my} z={h} shade={STONE} />
       ))}
-      <path className="vmap-portal" d={`M${dx - 9},${dy} l0,-16 q9,-12 18,0 l0,16 z`} />
+      <path
+        className="vmap-portal"
+        d={`M${dx - 9},${dy} l0,-16 q9,-12 18,0 l0,16 z`}
+        transform={`rotate(90 ${dx} ${dy})`}
+      />
       <Torch px={dx - 16} py={dy - 18} />
       <Torch px={dx + 16} py={dy - 18} />
       {/* Meurtrières. */}

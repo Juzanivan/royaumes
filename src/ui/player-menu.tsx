@@ -1,11 +1,10 @@
 'use client'
 import Link from 'next/link'
 import { authClient } from '@/platform/auth/client'
-import { ThemeToggle } from './theme-toggle'
 
 /**
- * Menu du joueur : son nom, l'accès à ses données, le choix du thème et la déconnexion.
- * Il s'ouvre depuis le château, sur la carte du village.
+ * Menu du joueur : son nom, l'accès à ses données et la déconnexion. Il s'ouvre depuis le
+ * château, sur la carte du village ; le thème s'y change par le soleil ou la lune du ciel.
  */
 export function PlayerMenu({ userName }: { userName: string }) {
   async function signOut() {
@@ -21,7 +20,6 @@ export function PlayerMenu({ userName }: { userName: string }) {
         Seigneur <strong>{userName}</strong>
       </p>
       <div className="row">
-        <ThemeToggle />
         <Link href="/account">Mes données</Link>
         <button className="link" type="button" onClick={signOut}>
           Déconnexion
