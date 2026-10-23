@@ -78,9 +78,10 @@ Un module n'est accessible depuis l'extérieur que par ses entrées publiques : 
 | `system` | Route de santé | `/api/system` |
 | `realm` | Village : fondation, production de ressources, amélioration des bâtiments | `/api/realm` |
 | `dungeon` | Donjon : expéditions de un à quatre héros, compagnons pilotés par l'ordinateur, deux niveaux de difficulté, combats en manches simultanées | `/api/dungeon` |
-| `ranking` | Classement des joueurs, construit à partir des événements du Village et du Donjon | `/api/ranking` |
+| `ranking` | Classement des joueurs, construit à partir des événements du Village, du Donjon et de la Caravane | `/api/ranking` |
 | `market` | Marché : échanges de ressources entre joueurs, par une saga orchestrée | `/api/market` |
 | `tavern` | Taverne : salon de discussion commun et présence des joueurs, sans Event Sourcing | `/api/tavern` |
+| `caravan` | Caravane : envoi de ressources au village d'un autre joueur, avec escorte, attaques de brigands pilotés par l'ordinateur et saga compensable avec le Village ([fiche de cadrage](docs/evaluation/fiche-cadrage.md)) | `/api/caravans` |
 
 ## Temps réel
 
@@ -97,7 +98,11 @@ enregistrés après leur ouverture.
 Le canal `tavern` ne lit pas le journal, mais la table des messages de la Taverne : il
 transmet chaque nouveau message, avec son contenu, à tous les joueurs connectés.
 
-Les canaux du Donjon, du Classement et du Marché sont discrets : ils ne transmettent que la position,
+Le canal `caravan-<caravane>` n'est accessible qu'à l'expéditeur et au destinataire de la
+caravane. Il annonce le départ, puis l'attaque ou la livraison, et chaque navigateur relit
+alors la vue de la caravane.
+
+Les canaux du Donjon, du Classement, du Marché et de la Caravane sont discrets : ils ne transmettent que la position,
 le type et la version des événements, et chaque navigateur relit sa propre vue, filtrée
 par le serveur.
 
@@ -115,6 +120,12 @@ chaque consultation du Marché, et chaque jour par la tâche planifiée `/api/cr
 est garantie au moins une fois : les gestionnaires de messages sont idempotents. Un message qui
 échoue dix fois est abandonné : la tâche quotidienne le signale, et le script
 `scripts/dead-letters.ts` permet de l'examiner, puis de le relancer une fois sa cause corrigée.
+
+La Caravane suit le même modèle (ADR 0011) : elle prélève la cargaison dans le village de
+l'expéditeur, puis la verse au destinataire, ou rend ce qu'il en reste à l'expéditeur après
+une attaque de brigands. Ses messages sont distribués après chaque envoi et chaque
+consultation d'une caravane. L'issue d'un voyage est constatée à la première lecture qui
+dépasse son heure, ou à défaut par un rappel différé de la boîte d'envoi (ADR 0012).
 
 ## Service Village extrait
 
@@ -141,6 +152,11 @@ page « Mes données » :
   tous les modules, et son nom est remplacé par une mention neutre dans le journal
   d'événements (ADR 0008). Chaque effacement est consigné dans `platform.erasures`.
 
+La Caravane conserve, pour chaque caravane, l'identifiant et le nom de l'expéditeur, et
+l'identifiant et le nom du village destinataire. Ils sont exportés avec les caravanes du
+joueur, sans la graine qui décide de leur issue, et remplacés par une mention neutre lors de
+l'effacement ; le village d'un joueur effacé disparaît des destinations.
+
 Les messages de la Taverne sont conservés trente jours, et la présence d'un joueur deux
 minutes après son dernier signal. Ces durées sont appliquées à chaque lecture, et chaque jour
 par la tâche planifiée `/api/cron/daily`.
@@ -153,7 +169,7 @@ démarrage. Pour repartir d'une base vide, arrêtez le serveur et supprimez le r
 
 Les tests utilisent une base PGlite en mémoire, recréée pour chaque fichier de test.
 
-Le classement et la liste des expéditions ouvertes sont des modèles de lecture, tenus à jour
+Le classement, la liste des expéditions ouvertes, les offres du Marché et les caravanes sont des modèles de lecture, tenus à jour
 par des projections à partir du journal d'événements (ADR 0006). Chaque projection est
 rattrapée à la consultation, et reconstruite automatiquement lorsque sa version change :
 une modification qui change le contenu de ses tables doit donc augmenter sa version.
@@ -188,9 +204,12 @@ sans la première ; sans la seconde, la route des tâches quotidiennes reste fer
 - [Revue de sécurité de l'authentification](docs/qualite/revue-securite-authentification.md)
 - [Revue de sécurité du Donjon](docs/qualite/revue-securite-donjon.md)
 - [Revue de sécurité du Marché](docs/qualite/revue-securite-marche.md)
+- [Revue de sécurité de la Caravane](docs/qualite/revue-securite-caravan.md)
 - [Registre des traitements](docs/rgpd/registre-traitements.md)
 - [Revue de conformité au RGPD](docs/rgpd/revue-conformite.md)
 - [Bilan technique](docs/bilan-technique.md)
+- [Fiche de cadrage du module Caravane](docs/evaluation/fiche-cadrage.md)
+- [Document de rendu de l'évaluation](docs/evaluation/rendu.md)
 
 ## Conventions
 
@@ -220,6 +239,12 @@ quotidienne.
 L'effacement d'un compte parcourt tout le journal d'événements : sa durée croît avec la taille
 du journal. L'identifiant d'un joueur effacé reste dans le journal, sous une forme
 pseudonymisée : plus aucune table ne le relie à une personne (ADR 0008).
+
+Le nombre de caravanes en route d'un joueur est lu avant l'envoi : deux envois simultanés
+peuvent dépasser la limite de trois caravanes (DT-016). Une caravane qui arrive alors que
+personne ne la consulte n'est livrée qu'à la distribution suivante de la boîte d'envoi. La vue
+de profil d'une caravane interroge le serveur toutes les 2,5 secondes, pour constater l'attaque
+ou l'arrivée à son heure ; l'animation peut donc partir jusqu'à 2,5 secondes après.
 
 Le service Village extrait n'est pas prêt pour la production : ses migrations, la pagination
 de son flux publié et la distribution de sa boîte d'envoi restent à traiter. Ces limites, et

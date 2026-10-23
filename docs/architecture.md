@@ -12,7 +12,7 @@ dans le même commit que la modification qu'ils décrivent.
 ```mermaid
 flowchart TB
   joueur["Joueur<br/>[Personne]<br/>Joue depuis un navigateur,<br/>sur ordinateur ou sur téléphone"]
-  royaumes["Royaumes<br/>[Système logiciel]<br/>Jeu web multijoueur : village, donjon,<br/>classement, marché et taverne"]
+  royaumes["Royaumes<br/>[Système logiciel]<br/>Jeu web multijoueur : village, donjon,<br/>classement, marché, taverne et caravanes"]
   joueur -->|"Gère son village, joue avec les autres joueurs,<br/>reçoit les changements en direct (HTTPS)"| royaumes
 ```
 
@@ -28,7 +28,7 @@ flowchart TB
   subgraph royaumes["Système Royaumes"]
     web["Interface web<br/>[Conteneur : React, dans le navigateur]<br/>Pages du jeu et page de connexion"]
     serveur["Application serveur<br/>[Conteneur : Next.js et Hono, fonctions Vercel, Francfort]<br/>Rendu des pages, API JSON,<br/>authentification, flux temps réel"]
-    base[("Base de données<br/>[Conteneur : PostgreSQL, Neon, Francfort]<br/>Schéma platform : journal, points de reprise,<br/>boîte d'envoi, registre des effacements<br/>Schéma identity : comptes et sessions<br/>Schémas ranking, dungeon et market :<br/>modèles de lecture<br/>Schéma tavern : messages et présence")]
+    base[("Base de données<br/>[Conteneur : PostgreSQL, Neon, Francfort]<br/>Schéma platform : journal, points de reprise,<br/>boîte d'envoi, registre des effacements<br/>Schéma identity : comptes et sessions<br/>Schémas ranking, dungeon, market et caravan :<br/>modèles de lecture<br/>Schéma tavern : messages et présence")]
   end
   joueur -->|"Utilise"| web
   web -->|"Pages, appels de l'API avec le cookie de session<br/>(HTTPS, JSON)"| serveur
@@ -42,9 +42,9 @@ flowchart TB
 | Application serveur | Next.js, Hono, Better Auth, Drizzle | Contrôle d'accès, règles du jeu, enregistrement des événements, diffusion des flux |
 | Base de données | PostgreSQL (Neon en production, PGlite en local et en test) | Conservation du journal d'événements, des comptes et des sessions ; modèles de lecture des modules |
 
-Le journal d'événements est la seule source de vérité des modules Village, Donjon et Marché.
+Le journal d'événements est la seule source de vérité des modules Village, Donjon, Marché et Caravane.
 La Taverne n'enregistre pas d'événements : ses tables sont sa propre source de vérité (ADR 0008).
-Les tables des schémas `ranking`, `dungeon` et `market` sont des modèles de lecture, dérivés du journal par des projections : elles peuvent
+Les tables des schémas `ranking`, `dungeon`, `market` et `caravan` sont des modèles de lecture, dérivés du journal par des projections : elles peuvent
 être vidées puis reconstruites à tout moment, sans perte d'information.
 
 L'interface web ne communique jamais directement avec la base : toute lecture et toute
@@ -67,6 +67,7 @@ flowchart TB
     ranking["ranking<br/>Classement : projection,<br/>lecture, API, canal global"]
     market["market<br/>Marché : orchestrateur de la saga,<br/>projection des offres, API, canal global"]
     tavern["tavern<br/>Taverne : messages et présence<br/>en tables, API, canal à source propre"]
+    caravan["caravan<br/>Caravane : domaine et IA des brigands,<br/>orchestrateur de la saga, projection,<br/>API, canal discret par caravane"]
   end
   subgraph platform["src/platform"]
     auth["auth<br/>Port AuthPort,<br/>adaptateur Better Auth"]
@@ -83,13 +84,16 @@ flowchart TB
   route --> server
   pages --> server
   server --> createapi
-  createapi --> system & realm & dungeon & ranking & market & tavern & auth & http & realtime & projection & outbox & privacy & cron
+  createapi --> system & realm & dungeon & ranking & market & tavern & caravan & auth & http & realtime & projection & outbox & privacy & cron
   realm --> store & realtime & http & outbox
   market --> store & projection & realtime & http & outbox
   dungeon --> store & projection & realtime & http
   ranking --> projection & realtime & http
   tavern --> realtime & http & db
-  realm & dungeon & market & ranking & tavern --> privacy
+  caravan --> store & projection & realtime & http & outbox
+  caravan -.->|"contrats"| realm
+  ranking -.->|"contrats"| caravan
+  realm & dungeon & market & ranking & tavern & caravan --> privacy
   privacy --> store
   auth --> privacy
   realtime --> store & http
@@ -102,12 +106,13 @@ flowchart TB
   db --> base
 ```
 
-Une flèche signifie « dépend de ». Le diagramme ne montre que les dépendances principales :
+Une flèche signifie « dépend de » ; une flèche en pointillés, une dépendance limitée aux
+contrats d'un autre module (`contracts.ts`). Le diagramme ne montre que les dépendances principales :
 `server.ts` crée également lui-même la base, le journal et l'adaptateur d'authentification,
 qu'il transmet à `create-api.ts`. Les modules `dungeon` et `ranking` écrivent directement
 dans leurs propres tables, au sein de la transaction fournie par le moteur des projections.
 
-Le module `ranking` lit des événements du Village et du Donjon, mais n'importe aucun de leurs
+Le module `ranking` lit des événements du Village, du Donjon et de la Caravane, mais n'importe aucun de leurs
 fichiers en dehors de leurs contrats : il ne dépend que de leur langage publié, c'est-à-dire
 du nom et des données de leurs événements, ainsi que du préfixe de leurs flux.
 
@@ -116,6 +121,48 @@ des messages dans la boîte d'envoi, que le distributeur remet aux gestionnaires
 La seule dépendance directe porte sur les contrats du Village (`REALM_TOPICS`, `ResourceAmounts`),
 qui décrivent ces messages. Chaque transaction ne modifie que les données d'un seul module,
 et la boîte d'envoi (ADR 0007).
+
+Le module `caravan` communique avec deux modules existants, sans importer leur code :
+
+- avec le **Village**, par une saga orchestrée dont les messages passent par la boîte
+  d'envoi : prélèvement de la cargaison au départ (étape compensable), puis versement au
+  destinataire à la livraison, ou restitution du reste à l'expéditeur après une attaque
+  (ADR 0011). Le Village n'a pas été modifié : la Caravane utilise ses sujets
+  `realm.withdraw` et `realm.deposit`, comme le Marché. Elle lit aussi les événements de
+  fondation des villages, pour tenir la liste des destinations ;
+- avec le **Classement**, par son propre langage publié : le Classement lit les événements des
+  caravanes et compte les livraisons de chaque joueur.
+
+L'issue d'un voyage est décidée au départ par l'IA des brigands, à partir d'une graine qui
+ne quitte jamais le journal, et constatée sans tâche de fond : à la première lecture qui
+dépasse son heure, ou par un rappel différé de la boîte d'envoi (ADR 0012).
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor Alice as Alice (navigateur)
+  participant API as API Caravane
+  participant J as Journal et boîte d'envoi
+  participant V as Village (gestionnaires)
+  participant C as Classement (projection)
+  actor Bob as Bob (navigateur)
+  Alice->>API: POST /api/caravans (destinataire, cargaison, escorte)
+  API->>J: CaravanSent + message realm.withdraw (même transaction)
+  J->>V: realm.withdraw <caravane>:load
+  V->>J: ResourcesWithdrawn + réponse caravan.transfer-result
+  J->>API: caravan.transfer-result
+  API->>J: CaravanDeparted + rappel caravan.resolve différé
+  API-->>Alice: 201, vue « en route »
+  Note over Alice,Bob: Le voyage dure de 60 à 110 secondes
+  Bob->>API: GET /api/caravans/:id (après l'heure de l'issue)
+  API->>J: CaravanDelivered + message realm.deposit
+  J->>V: realm.deposit <caravane>:deliver
+  V->>J: ResourcesDeposited (village de Bob)
+  API-->>Bob: vue « livrée »
+  C->>J: rattrapage à la lecture du classement
+  C-->>C: +1 caravane livrée pour Alice
+  Note over J,V: Après une attaque, le message est realm.deposit <caravane>:return,<br/>au profit d'Alice : c'est la compensation.
+```
 
 Chaque module déclare ses données personnelles à la brique `privacy`, au moyen d'un fichier
 `personal-data.ts` : il les exporte, désigne les champs personnels de ses événements, et les

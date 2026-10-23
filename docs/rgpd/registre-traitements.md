@@ -5,7 +5,7 @@ réalisés par Royaumes. Il est tenu à jour à chaque évolution du jeu qui ajo
 supprime une donnée personnelle, dans le même commit que cette évolution.
 
 - Responsable du traitement : Juzanivan, dans le cadre du projet de cours, juleszanivan16@gmail.com.
-- Date de dernière mise à jour : 2026-10-20.
+- Date de dernière mise à jour : 2026-10-23.
 
 ## Sous-traitants
 
@@ -21,6 +21,7 @@ supprime une donnée personnelle, dans le même commit que cette évolution.
 | T1 | Comptes des joueurs | Permettre l'accès au jeu | Nom, adresse électronique, empreinte du mot de passe, date d'inscription | Joueurs | Exécution du contrat (conditions d'utilisation du jeu) | Jusqu'à la suppression du compte | `identity.user`, `identity.account` |
 | T2 | Sessions | Maintenir la connexion ; limiter les tentatives de connexion | Adresse IP, navigateur, dates de la session | Joueurs | Exécution du contrat ; intérêt légitime (sécurité) | Jusqu'à l'expiration de la session, ou la suppression du compte | `identity.session` |
 | T3 | Activité de jeu | Faire fonctionner le Village, le Donjon, le Marché et le Classement | Identifiant, nom du joueur, nom du village, actions de jeu | Joueurs | Exécution du contrat | Jusqu'à la suppression du compte ; ensuite, identifiant pseudonymisé et noms remplacés (ADR 0008) | `platform.events`, `platform.outbox`, `ranking`, `dungeon`, `market` |
+| T8 | Caravanes | Acheminer des ressources entre les villages de deux joueurs, et présenter le voyage à l'expéditeur et au destinataire | Identifiant et nom de l'expéditeur ; identifiant et nom du village destinataire ; cargaison, escorte, heures et issue du voyage | Joueurs (expéditeur et destinataire) | Exécution du contrat | Jusqu'à la suppression du compte ; ensuite, identifiant pseudonymisé et noms remplacés (ADR 0008) ; le village d'un joueur effacé est retiré des destinations | `platform.events` (flux `caravan-`), `platform.outbox`, `caravan.caravans`, `caravan.destinations`, `ranking.caravan_senders` |
 | T4 | Messagerie de la Taverne | Permettre aux joueurs de discuter | Contenu des messages, auteur, date | Joueurs | Exécution du contrat | Trente jours, ou jusqu'à la suppression du compte | `tavern.messages` |
 | T5 | Présence dans la Taverne | Indiquer les joueurs présents | Identifiant, nom, date du dernier signal | Joueurs | Exécution du contrat | Deux minutes après le dernier signal | `tavern.presence` |
 | T6 | Registre des effacements | Démontrer la réalisation des effacements | Date de l'effacement, nombre d'événements réécrits ; aucune donnée sur le joueur | Aucune personne identifiable | Obligation légale (responsabilité, article 5) | Illimitée | `platform.erasures` |
