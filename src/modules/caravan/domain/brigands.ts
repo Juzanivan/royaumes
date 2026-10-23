@@ -50,6 +50,17 @@ export function greedFor(cargo: Cargo): number {
   return Math.min(0.9, 0.2 + (0.7 * appealOf(cargo)) / CARAVAN_CAPACITY)
 }
 
+/**
+ * Probabilité qu'une caravane soit attaquée, avant le tirage de sa graine : celle qu'une bande
+ * plus forte que l'escorte croise sa route (la taille de la bande est uniforme, de 1 à
+ * MAX_BAND), multipliée par l'envie d'attaquer. C'est le risque présenté au joueur au relais :
+ * il croît avec la valeur de la cargaison, et décroît avec la force de l'escorte.
+ */
+export function attackChance(cargo: Cargo, escort: Escort): number {
+  const stronger = Math.max(0, MAX_BAND - ESCORT_STRENGTH[escort]) / MAX_BAND
+  return stronger * greedFor(cargo)
+}
+
 /** Décision des brigands pour une caravane. Elle ne dépend que de la caravane et de sa graine. */
 export function brigandsPlan({ cargo, escort, seed }: Target): BrigandsPlan {
   const random = seeded(seed)

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { AMBUSH_WINDOW, appealOf, brigandsPlan, greedFor } from './brigands'
+import { AMBUSH_WINDOW, appealOf, attackChance, brigandsPlan, greedFor } from './brigands'
 import type { Cargo, Escort } from './rules'
 
 const SEEDS = Array.from({ length: 2000 }, (_, i) => i + 1)
@@ -40,5 +40,24 @@ describe('Caravane - les brigands (IA déterministe, règle 7)', () => {
       expect(plan.at).toBeGreaterThanOrEqual(AMBUSH_WINDOW.from)
       expect(plan.at).toBeLessThanOrEqual(AMBUSH_WINDOW.to)
     }
+  })
+
+  it("annonce un risque d'attaque égal à la fréquence des attaques sur de nombreuses graines", () => {
+    for (const [cargo, escort] of [
+      [{ wood: 50 }, 'none'],
+      [{ wood: 200, stone: 200 }, 'guards'],
+      [{ gold: 300 }, 'knights'],
+    ] as [Cargo, Escort][]) {
+      expect(Math.abs(attackChance(cargo, escort) - attackRate(cargo, escort))).toBeLessThan(0.04)
+    }
+  })
+
+  it('annonce un risque qui croît avec la cargaison et décroît avec l’escorte', () => {
+    expect(attackChance({ wood: 400 }, 'none')).toBeGreaterThan(attackChance({ wood: 40 }, 'none'))
+    expect(attackChance({ wood: 400 }, 'guards')).toBeLessThan(attackChance({ wood: 400 }, 'none'))
+    expect(attackChance({ wood: 400 }, 'knights')).toBeLessThan(
+      attackChance({ wood: 400 }, 'guards'),
+    )
+    expect(attackChance({ gold: 500 }, 'none')).toBe(0.9)
   })
 })

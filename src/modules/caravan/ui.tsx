@@ -9,6 +9,7 @@ import { ExitArea } from '@/ui/places'
 import { look } from '@/ui/theme'
 import type { CaravanApi } from './api'
 import {
+  attackChance,
   CARAVAN_CAPACITY,
   type CaravanError,
   type CaravanList,
@@ -85,6 +86,17 @@ function CargoText({ cargo }: { cargo: Cargo }) {
   )
 }
 
+/** Niveau de danger présenté au joueur, selon le risque d'attaque. */
+const dangerOf = (risk: number) =>
+  risk < 0.2
+    ? { level: 'low', label: 'Faible' }
+    : risk < 0.45
+      ? { level: 'mid', label: 'Modéré' }
+      : { level: 'high', label: 'Élevé' }
+
+/** Risque en pourcentage arrondi : « 34 % ». */
+const percent = (risk: number) => `${Math.round(risk * 100)} %`
+
 /** Durée en minutes et secondes : « 1 min 08 ». */
 const duration = (ms: number) => {
   const seconds = Math.max(0, Math.ceil(ms / 1000))
@@ -126,6 +138,9 @@ export function CaravanScreen() {
     Object.entries(cargo).filter(([, amount]) => amount > 0),
   ) as Cargo
   const total = totalOf(load)
+  // Risque d'attaque de la caravane telle qu'elle est composée : il suit la cargaison et l'escorte.
+  const risk = total > 0 ? attackChance(load, escort) : 0
+  const danger = dangerOf(risk)
 
   async function send() {
     setError(null)
@@ -235,9 +250,31 @@ export function CaravanScreen() {
                 )}
               </span>
               <small className="muted">{ESCORT[level].hint}</small>
+              {total > 0 && (
+                <small className="caravan-escort-risk">
+                  Risque : {percent(attackChance(load, level))}
+                </small>
+              )}
             </label>
           ))}
         </fieldset>
+
+        <div className="caravan-risk" data-level={danger.level} aria-live="polite">
+          <span className="caravan-risk-label">
+            <span aria-hidden="true">{look('brigand').glyph}</span> Risque d'attaque :{' '}
+            <strong>
+              {percent(risk)} ({danger.label.toLowerCase()})
+            </strong>
+          </span>
+          <div className="caravan-risk-track" aria-hidden="true">
+            {/* Le dégradé couvre toute la jauge ; la part au-delà du risque est voilée. */}
+            <div className="caravan-risk-rest" style={{ width: `${(1 - risk) * 100}%` }} />
+          </div>
+          <small className="muted">
+            Plus la cargaison est précieuse, plus elle attire les brigands ; l'or les attire trois
+            fois plus que le bois ou la pierre. Une attaque coûte la moitié de la cargaison.
+          </small>
+        </div>
 
         <button type="submit" disabled={!recipientId || total === 0 || total > CARAVAN_CAPACITY}>
           Envoyer la caravane

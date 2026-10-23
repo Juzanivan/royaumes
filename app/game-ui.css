@@ -437,3 +437,12 @@ main:has(.title-screen) { max-width: none; padding: 0; }
 .window-frame { pointer-events: none; }
 /* Voiles et lueurs du décor : ils ne doivent pas intercepter le clic destiné à l'astre. */
 .place-vignette, .place-glow, .dungeon-fog, .place-cloud { pointer-events: none; }
+
+/* --- Relais : jauge du risque d'attaque -------------------------------------------------- */
+.caravan-risk { display: grid; gap: 6px; padding: 10px 12px; border-radius: 10px; border: 2px solid color-mix(in srgb, var(--ok) 60%, transparent); background: color-mix(in srgb, var(--field-bg) 70%, transparent); transition: border-color 0.3s ease; }
+.caravan-risk[data-level='mid'] { border-color: color-mix(in srgb, #d9a52a 70%, transparent); }
+.caravan-risk[data-level='high'] { border-color: color-mix(in srgb, #c0392b 70%, transparent); }
+.caravan-risk-label { font-family: var(--font-heading); }
+.caravan-risk-track { position: relative; height: 12px; border-radius: 999px; background: linear-gradient(90deg, #5fae4f, #d9a52a 45%, #c0392b 85%); box-shadow: inset 0 2px 3px rgb(0 0 0 / 0.4); overflow: hidden; }
+.caravan-risk-rest { position: absolute; top: 0; right: 0; bottom: 0; background: rgb(60 40 25 / 0.75); transition: width 0.3s ease; }
+.caravan-escort-risk { font-weight: 700; color: color-mix(in srgb, var(--sheet-ink) 80%, #c0392b); }

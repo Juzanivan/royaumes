@@ -8,6 +8,7 @@ import { ResourceAmounts } from '@/modules/realm/contracts'
 import type { CaravanStatus } from './domain/caravan'
 import { type Cargo, ESCORTS, type Escort } from './domain/rules'
 
+export { attackChance } from './domain/brigands'
 export type { CaravanError, CaravanStatus } from './domain/caravan'
 export type { Cargo, Escort } from './domain/rules'
 export {
