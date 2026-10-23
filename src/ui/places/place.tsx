@@ -7,12 +7,13 @@ import { AccountScene } from './scenes/account/account-scene'
 import { CaravanScene } from './scenes/caravan/caravan-scene'
 import { DungeonScene } from './scenes/dungeon/dungeon-scene'
 import { MarketScene } from './scenes/market/market-scene'
+import { NewsScene } from './scenes/news/news-scene'
 import { RankingScene } from './scenes/ranking/ranking-scene'
 import { TavernScene } from './scenes/tavern/tavern-scene'
 import { TitleScene } from './scenes/title/title-scene'
 
 /** Les lieux du jeu qui ont un décor. */
-export type PlaceKind = 'market' | 'tavern' | 'dungeon' | 'ranking' | 'account' | 'caravan'
+export type PlaceKind = 'market' | 'tavern' | 'dungeon' | 'ranking' | 'account' | 'caravan' | 'news'
 
 /** Décors disponibles : ceux des lieux, et celui de l'écran titre (connexion, fondation). */
 export type SceneKind = PlaceKind | 'title'
@@ -24,6 +25,7 @@ const SCENES: Record<SceneKind, () => ReactNode> = {
   ranking: RankingScene,
   account: AccountScene,
   caravan: CaravanScene,
+  news: NewsScene,
   title: TitleScene,
 }
 
@@ -44,6 +46,7 @@ const SCENE_TITLES: Record<SceneKind, string> = {
   ranking: 'Décor : la salle des trophées',
   account: 'Décor : les archives du château',
   caravan: 'Décor : la cour du relais des caravanes',
+  news: 'Décor : le panneau du crieur public, sur la place',
   title: 'Décor : le château du royaume',
 }
 
