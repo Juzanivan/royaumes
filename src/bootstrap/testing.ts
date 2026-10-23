@@ -35,6 +35,8 @@ type TestUser = string | null
 export async function createTestApi({ villageService = false } = {}) {
   const start = Date.UTC(2026, 0, 1)
   let now = start
+  // Graine des brigands de la prochaine caravane : un test choisit ainsi l'issue d'un voyage.
+  let caravanSeed = 1
   const db = await createTestDatabase()
   const store = createEventStore(db)
 
@@ -58,6 +60,7 @@ export async function createTestApi({ villageService = false } = {}) {
     store,
     clock: () => now,
     realtime: { pollMs: 20, maxStreamMs: 150 },
+    caravanSeed: () => caravanSeed,
     cronSecret: TEST_CRON_SECRET,
     // Le distributeur compare la date de disponibilité des messages, fixée par la base en
     // heure réelle, à sa propre horloge : celle-ci part de l'heure réelle, et avance avec
@@ -99,7 +102,12 @@ export async function createTestApi({ villageService = false } = {}) {
     serviceUp = up
   }
 
+  /** Choisit la graine des brigands des prochaines caravanes. */
+  const setCaravanSeed = (seed: number) => {
+    caravanSeed = seed
+  }
+
   // La base est aussi renvoyée : certains tests vérifient directement le contenu des tables,
   // par exemple qu'une donnée personnelle a bien été supprimée.
-  return { api, db, service, serviceDb, get, post, advance, setServiceUp }
+  return { api, db, service, serviceDb, get, post, advance, setServiceUp, setCaravanSeed }
 }

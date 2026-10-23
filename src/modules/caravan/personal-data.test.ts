@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { StoredEvent } from '@/platform/event-store/event-store'
-import { ERASED_NAME } from '@/platform/privacy/privacy'
+import { ERASED_NAME, ERASED_VILLAGE } from '@/platform/privacy/privacy'
 import { createCaravanPersonalData } from './personal-data'
 
 const sent: StoredEvent = {
@@ -13,7 +13,7 @@ const sent: StoredEvent = {
     senderId: 'alice',
     senderName: 'Alice',
     recipientId: 'bob',
-    recipientName: 'Bob',
+    recipientName: 'Bobville',
     cargo: { wood: 10 },
     escort: 'none',
     seed: 42,
@@ -27,7 +27,10 @@ const store = {
   readAll: async () => [sent],
 } as unknown as Parameters<typeof createCaravanPersonalData>[0]
 
-const contributor = createCaravanPersonalData(store)
+const contributor = createCaravanPersonalData(
+  store,
+  {} as Parameters<typeof createCaravanPersonalData>[1],
+)
 
 describe('Caravane - données personnelles', () => {
   it('exporte les caravanes envoyées et reçues par le joueur, sans la graine des brigands', async () => {
@@ -37,15 +40,15 @@ describe('Caravane - données personnelles', () => {
     expect(await contributor.export('carol')).toEqual([])
   })
 
-  it("remplace le nom de l'expéditeur ou du destinataire effacé, et lui seul", () => {
+  it("remplace le nom de l'expéditeur, ou du village du destinataire, effacé", () => {
     expect(contributor.redact?.(sent, 'alice')).toMatchObject({
       senderName: ERASED_NAME,
-      recipientName: 'Bob',
+      recipientName: 'Bobville',
       seed: 42,
     })
     expect(contributor.redact?.(sent, 'bob')).toMatchObject({
       senderName: 'Alice',
-      recipientName: ERASED_NAME,
+      recipientName: ERASED_VILLAGE,
     })
     expect(contributor.redact?.(sent, 'carol')).toBeNull()
     // Un événement déjà réécrit n'est plus modifié.

@@ -38,6 +38,7 @@ export interface CaravanState {
   senderId: string
   senderName: string
   recipientId: string
+  /** Nom du village du destinataire : c'est vers lui que la caravane fait route. */
   recipientName: string
   cargo: Cargo
   escort: Escort
@@ -104,7 +105,10 @@ export type CaravanEvent =
 // Commandes
 // ---------------------------------------------------------------------------
 
-/** Joueur qui participe à un voyage : expéditeur ou destinataire. */
+/**
+ * Joueur qui participe à un voyage : l'expéditeur, désigné par son nom, ou le destinataire,
+ * désigné par le nom de son village.
+ */
 export interface Party {
   id: string
   name: string
