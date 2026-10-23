@@ -15,6 +15,8 @@ export const ERASED_VILLAGE = 'Village effacé'
  * Chaque module connaît ses propres données personnelles : il les exporte, désigne celles
  * de ses événements, et efface celles de ses tables. La plateforme ne connaît aucun module.
  */
+// DETTE TECHNIQUE DT-015 (docs/qualite/dette-technique.md) : le contrat ne prévoit aucune
+// rectification ; le nom d'un joueur, copié dans les événements et les tables, ne peut être modifié.
 export interface PersonalDataContributor {
   /** Nom de la section de l'export consacrée à ce module, par exemple « realm ». */
   name: string
