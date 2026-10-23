@@ -15,5 +15,5 @@ export const dynamic = 'force-dynamic'
 export default async function GameLayout({ children }: { children: ReactNode }) {
   const user = await currentUser(await headers())
   if (!user) redirect('/login')
-  return <AppShell userName={user.name}>{children}</AppShell>
+  return <AppShell>{children}</AppShell>
 }

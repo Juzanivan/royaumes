@@ -5,15 +5,13 @@ import { useChannel } from '@/platform/realtime/use-channel'
 import { Entity } from '@/ui/entity'
 import type { RealmApi } from './api'
 import {
-  BUILDINGS,
   type Building,
   type DomainError,
-  RESOURCES,
-  type Stock,
   stockAt,
   type VillageView,
   villageChannel,
 } from './contracts'
+import { VillageMap } from './village-map'
 
 /** Client HTTP typé, déduit de la sous-application Hono du module. */
 const client = hc<RealmApi>('/api/realm')
@@ -30,11 +28,6 @@ const ERRORS: Record<ApiError['code'], string> = {
   INSUFFICIENT_RESOURCES: 'Ressources insuffisantes.',
 }
 
-/** Indique si le stock couvre un coût ; faux si le coût est absent (niveau maximal). */
-function canAfford(stock: Stock, cost: Partial<Stock> | null) {
-  return !!cost && Object.entries(cost).every(([r, n]) => stock[r as keyof Stock] >= (n ?? 0))
-}
-
 /** Libellé affiché pour chaque état de la connexion temps réel. */
 const STATUS_LABELS = {
   connecting: 'Connexion...',
@@ -42,8 +35,11 @@ const STATUS_LABELS = {
   reconnecting: 'Reconnexion...',
 } as const
 
-/** Écran du Village : fondation, stock et bâtiments, mis à jour en temps réel. */
-export function VillageScreen({ userId }: { userId: string }) {
+/**
+ * Écran du Village : fondation du village, puis carte du village, mise à jour en temps réel.
+ * La carte est aussi le point de départ du jeu : ses bâtiments mènent aux autres lieux.
+ */
+export function VillageScreen({ userId, userName }: { userId: string; userName: string }) {
   // undefined : chargement en cours ; null : aucun village fondé.
   const [view, setView] = useState<VillageView | null | undefined>(undefined)
   const [now, setNow] = useState(() => Date.now())
@@ -87,25 +83,25 @@ export function VillageScreen({ userId }: { userId: string }) {
     }
   }
 
-  const title = (
-    <div className="row" style={{ justifyContent: 'space-between' }}>
-      <h1>
-        <Entity kind="village" /> {view?.name ?? 'Royaumes'}
-      </h1>
-      <span className="status" data-status={status}>
-        {STATUS_LABELS[status]}
-      </span>
-    </div>
+  const statusLabel = (
+    <span className="status" data-status={status}>
+      {STATUS_LABELS[status]}
+    </span>
   )
 
   // Chargement en cours.
-  if (view === undefined) return title
+  if (view === undefined) return <h1 className="sr-only">Royaumes</h1>
 
   // Aucun village : formulaire de fondation.
   if (view === null) {
     return (
       <>
-        {title}
+        <div className="row" style={{ justifyContent: 'space-between' }}>
+          <h1>
+            <Entity kind="village" /> Royaumes
+          </h1>
+          {statusLabel}
+        </div>
         <div className="panel">
           <form
             onSubmit={(e) => {
@@ -123,43 +119,19 @@ export function VillageScreen({ userId }: { userId: string }) {
     )
   }
 
-  // Village fondé : stock extrapolé à l'instant courant, puis bâtiments.
-  const stock = stockAt(view, now)
+  // Village fondé : la carte, avec le stock extrapolé à l'instant courant. Le titre n'est lu
+  // que par les lecteurs d'écran : le nom du village figure sur la bannière du château.
   return (
     <>
-      {title}
-      <section className="panel stock" aria-label="Ressources">
-        {RESOURCES.map((r) => (
-          <div key={r}>
-            <Entity kind={r} /> {Math.floor(stock[r])}
-            <small>+{view.ratesPerMinute[r]} / min</small>
-          </div>
-        ))}
-      </section>
-      <section className="panel buildings" aria-label="Bâtiments">
-        {BUILDINGS.map((b) => {
-          const cost = view.nextCosts[b]
-          return (
-            <div key={b} className="building">
-              <span>
-                <Entity kind={b} showLabel /> <span className="muted">niveau {view.levels[b]}</span>
-              </span>
-              <span className="row">
-                {cost &&
-                  Object.entries(cost).map(([r, n]) => (
-                    <span key={r} className="muted">
-                      <Entity kind={r} /> {n}
-                    </span>
-                  ))}
-                <button type="button" disabled={!canAfford(stock, cost)} onClick={() => upgrade(b)}>
-                  {view.levels[b] === 0 ? 'Construire' : 'Améliorer'}
-                </button>
-              </span>
-            </div>
-          )
-        })}
-        {error && <p className="error">{error}</p>}
-      </section>
+      <h1 className="sr-only">{view.name}</h1>
+      <VillageMap
+        view={view}
+        stock={stockAt(view, now)}
+        error={error}
+        userName={userName}
+        onUpgrade={upgrade}
+        tools={statusLabel}
+      />
     </>
   )
 }

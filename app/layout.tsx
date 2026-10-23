@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Script from 'next/script'
 import type { ReactNode } from 'react'
 import './globals.css'
 
@@ -17,8 +18,11 @@ export const metadata: Metadata = {
  */
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="fr">
+    // L'attribut data-theme de <html> est posé par theme-init.js avant l'hydratation : React
+    // ne doit pas signaler l'écart entre le rendu du serveur et la page.
+    <html lang="fr" suppressHydrationWarning>
       <body>
+        <Script src="/theme-init.js" strategy="beforeInteractive" />
         <main>{children}</main>
       </body>
     </html>

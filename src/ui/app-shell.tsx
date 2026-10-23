@@ -2,51 +2,25 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
-import { authClient } from '@/platform/auth/client'
 import { Entity } from './entity'
+import { ThemeToggle } from './theme-toggle'
 
-/** Liens de navigation : chaque module ajouté au jeu y reçoit une entrée. */
-export const NAV = [
-  { href: '/village', kind: 'village', label: 'Village' },
-  { href: '/dungeon', kind: 'dungeon', label: 'Donjon' },
-  { href: '/ranking', kind: 'ranking', label: 'Classement' },
-  { href: '/market', kind: 'market', label: 'Marché' },
-  { href: '/tavern', kind: 'tavern', label: 'Taverne' },
-]
-
-/** Cadre de l'espace de jeu : navigation, nom du joueur, accès à ses données et déconnexion. */
-export function AppShell({ userName, children }: { userName: string; children: ReactNode }) {
+/**
+ * Cadre de l'espace de jeu. Le village est le point de départ : ses bâtiments mènent aux
+ * autres lieux du jeu (src/ui/destinations.ts), et son château ouvre le menu du joueur.
+ * Sur les autres pages, une barre discrète permet seulement d'y revenir et de changer de thème.
+ */
+export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
-
-  async function signOut() {
-    // La session est supprimée côté serveur, puis la page est entièrement rechargée,
-    // afin qu'aucun état de la session précédente ne subsiste dans le navigateur.
-    await authClient.signOut()
-    window.location.href = '/login'
-  }
-
+  if (pathname.startsWith('/village')) return children
   return (
     <>
-      <nav className="nav" aria-label="Navigation principale">
-        {NAV.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            aria-current={pathname.startsWith(item.href) ? 'page' : undefined}
-          >
-            <Entity kind={item.kind} /> {item.label}
-          </Link>
-        ))}
-        <span className="muted" style={{ marginLeft: 'auto' }}>
-          {userName}
-        </span>
-        <Link href="/account" aria-current={pathname === '/account' ? 'page' : undefined}>
-          Mes données
+      <header className="topbar">
+        <Link href="/village" className="back">
+          <span aria-hidden="true">←</span> <Entity kind="village" /> Retour au village
         </Link>
-        <button className="link" type="button" onClick={signOut}>
-          Déconnexion
-        </button>
-      </nav>
+        <ThemeToggle />
+      </header>
       {children}
     </>
   )

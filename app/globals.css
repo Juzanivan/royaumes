@@ -8,20 +8,50 @@
     --ok: #3f7d3a;
     --warn: #b5562f;
     --radius: 12px;
+    /* Carte du village, de jour. */
+    --sky-top: #9fd3f2;
+    --sky-bottom: #e8f4fb;
+    --stars: 0;
+    --cloud: rgb(255 255 255 / 0.85);
+    --scene-filter: none;
+    color-scheme: light;
     font-family: system-ui, sans-serif;
     color: var(--ink);
     background: var(--bg);
 }
 
-/* Variante appliquée lorsque le système de l'utilisateur est en thème sombre. */
+/*
+ * Thème sombre : appliqué lorsque le joueur l'a choisi (data-theme="dark", posé sur <html>
+ * par le sélecteur de thème), ou lorsque son système est en thème sombre et qu'il n'a pas
+ * choisi le thème clair. Les deux blocs portent les mêmes valeurs.
+ */
 @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme='light']) {
+        color-scheme: dark;
         --bg: #1d1915;
         --panel: #28221c;
         --ink: #f2e8da;
         --muted: #b3a38f;
         --accent: #d79b5b;
+        --sky-top: #141b33;
+        --sky-bottom: #3a3f63;
+        --stars: 1;
+        --cloud: rgb(200 205 230 / 0.25);
+        --scene-filter: brightness(0.86) saturate(0.9);
     }
+}
+:root[data-theme='dark'] {
+    color-scheme: dark;
+    --bg: #1d1915;
+    --panel: #28221c;
+    --ink: #f2e8da;
+    --muted: #b3a38f;
+    --accent: #d79b5b;
+    --sky-top: #141b33;
+    --sky-bottom: #3a3f63;
+    --stars: 1;
+    --cloud: rgb(200 205 230 / 0.25);
+    --scene-filter: brightness(0.86) saturate(0.9);
 }
 
 * { box-sizing: border-box; }
@@ -68,24 +98,18 @@ input {
 }
 
 /* Écran du Village. */
-.stock { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.stock div { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
-.stock small { display: block; font-size: 0.8rem; color: var(--muted); }
-.buildings { display: grid; gap: 12px; }
-.building { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 
-/* Navigation de l'espace de jeu. */
-.nav {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid color-mix(in srgb, var(--muted) 30%, transparent);
-}
-.nav a { color: var(--ink); text-decoration: none; }
-.nav a[aria-current='page'] { color: var(--accent); font-weight: 600; }
+/* Barre des pages autres que le village : retour au village et choix du thème. */
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid color-mix(in srgb, var(--muted) 30%, transparent); }
+.topbar .back { color: var(--accent); text-decoration: none; font-weight: 600; }
+.topbar .back:hover { text-decoration: underline; }
+
+/* Menu du joueur, ouvert depuis le château. */
+.player-menu p { margin: 8px 0; }
+.player-menu a { color: var(--accent); }
+
+/* Sélecteur de thème, dans la navigation. */
+.theme-toggle { background: transparent; color: var(--ink); padding: 4px 8px; border: 1px solid color-mix(in srgb, var(--muted) 35%, transparent); }
 
 /* Bouton présenté comme un lien. */
 button.link { background: none; color: var(--accent); padding: 0; }
@@ -125,3 +149,140 @@ input.amount { width: 5em; }
 
 /* Mes données : un lien présenté comme un bouton */
 a.button { display: inline-block; padding: 8px 14px; border-radius: 8px; background: var(--accent); color: white; text-decoration: none; }
+
+
+/* Village : vue carte */
+/*
+ * La carte occupe toute la largeur de la fenêtre, et toute la hauteur sous la navigation
+ * (--vmap-top, mesurée par le composant). Le ciel est le fond du conteneur : les marges
+ * laissées par la scène, selon les proportions de l'écran, se confondent avec lui.
+ * Les couleurs du jour et de la nuit suivent le thème clair ou sombre.
+ */
+main:has(.vmap) { padding-top: 0; padding-bottom: 0; }
+body:has(.vmap) { overflow-x: hidden; }
+.vmap {
+  position: relative;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  height: calc(100dvh - var(--vmap-top, 120px));
+  min-height: 360px;
+  overflow: hidden;
+  background: linear-gradient(var(--sky-top), var(--sky-bottom));
+}
+.vmap:fullscreen { height: 100vh; margin: 0; display: flex; flex-direction: column; }
+.vmap:fullscreen .vmap-viewport { flex: 1; min-height: 0; }
+.vmap-viewport { width: 100%; height: 100%; }
+.vmap-scene { display: block; width: 100%; height: 100%; filter: var(--scene-filter); }
+.vmap-stars { fill: #fff7d6; opacity: var(--stars); }
+.vmap-cloud { fill: var(--cloud); animation: vmap-drift 90s linear infinite; }
+
+/* Barre du haut de la carte : ressources à gauche, réglages à droite. */
+.vmap-top { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap; pointer-events: none; z-index: 2; }
+.vmap-top > * { pointer-events: auto; }
+.vmap-tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.vmap-tools .vmap-tools .vmap-tools .vmap-tools .status { padding: 6px 10px; border-radius: 999px; background: rgb(255 250 240 / 0.8); }
+.vmap-icon { background: rgb(255 250 240 / 0.88); color: #2b2118; padding: 6px 10px; border-radius: 10px; box-shadow: 0 2px 6px rgb(0 0 0 / 0.15); }
+.vmap-grid line { stroke: rgb(255 255 255 / 0.13); stroke-width: 1; }
+.vmap-path { fill: #d9bf8c; }
+.vmap-stake { fill: #8a5f3c; stroke: #5e3f26; stroke-width: 0.8; }
+.vmap-banner rect { fill: #fffaf0; stroke: #8a5a2b; stroke-width: 1.5; }
+.vmap-banner text { font-size: 12px; font-weight: 700; fill: #5a3a1c; letter-spacing: 0.04em; }
+
+/* Bâtiments : survol, sélection, blason de niveau. */
+.vmap-building { cursor: pointer; outline: none; transition: transform 0.18s ease, filter 0.18s ease; }
+.vmap-building:hover, .vmap-building:focus-visible { transform: translateY(-4px); filter: brightness(1.08) drop-shadow(0 6px 6px rgb(0 0 0 / 0.25)); }
+.vmap-halo { fill: rgb(255 236 170 / 0); stroke: rgb(255 236 170 / 0); stroke-width: 2; transition: fill 0.2s, stroke 0.2s; }
+.vmap-building:hover .vmap-halo, .vmap-building:focus-visible .vmap-halo { fill: rgb(255 236 170 / 0.25); }
+.vmap-building.is-selected .vmap-halo { fill: rgb(255 236 170 / 0.35); stroke: #ffe08a; animation: vmap-pulse 1.6s ease-in-out infinite; }
+.vmap-badge circle { fill: var(--accent); stroke: #fffaf0; stroke-width: 2.5; }
+.vmap-badge text { fill: #fff; font-size: 12px; font-weight: 700; }
+
+/* Animations de la scène. */
+.vmap-smoke circle { fill: rgb(235 235 235 / 0.8); animation: vmap-smoke 2.7s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+.vmap-saw { animation: vmap-spin 2.4s linear infinite; }
+.vmap-flag { animation: vmap-wave 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: left center; }
+.vmap-lantern { animation: vmap-glow 2.2s ease-in-out infinite; }
+.vmap-sparkle { animation: vmap-twinkle 2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.vmap-float { font-size: 13px; font-weight: 700; paint-order: stroke; stroke: rgb(0 0 0 / 0.35); stroke-width: 3px; opacity: 0; animation: vmap-float 4s ease-out infinite; }
+.vmap-float-wood { fill: #ffd29a; }
+.vmap-float-stone { fill: #eef1f5; }
+.vmap-float-gold { fill: #ffe066; }
+.vmap-ripple { fill: none; stroke: rgb(255 255 255 / 0.6); stroke-width: 1.5; animation: vmap-ripple 3s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+.vmap-walker { offset-rotate: 0deg; animation: vmap-walk 9s ease-in-out infinite alternate; }
+.vmap-building.is-upgrading { animation: vmap-bounce 0.7s ease-out; }
+.vmap-burst circle { fill: #ffe066; animation: vmap-burst 1.2s ease-out forwards; }
+
+@keyframes vmap-drift { from { transform: translateX(-120px); } to { transform: translateX(920px); } }
+@keyframes vmap-smoke { 0% { transform: translate(0, 0) scale(0.6); opacity: 0.9; } 100% { transform: translate(10px, -36px) scale(1.8); opacity: 0; } }
+@keyframes vmap-spin { to { transform: rotate(360deg); } }
+@keyframes vmap-wave { 50% { transform: skewY(8deg) scaleX(0.85); } }
+@keyframes vmap-glow { 50% { opacity: 0.55; } }
+@keyframes vmap-twinkle { 0%, 100% { opacity: 0; transform: scale(0.4); } 50% { opacity: 1; transform: scale(1); } }
+@keyframes vmap-float { 0% { opacity: 0; transform: translateY(6px); } 15% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; transform: translateY(-26px); } }
+@keyframes vmap-ripple { 0% { transform: scale(0.4); opacity: 0.9; } 100% { transform: scale(1.4); opacity: 0; } }
+@keyframes vmap-walk { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+@keyframes vmap-pulse { 50% { stroke-opacity: 0.3; } }
+@keyframes vmap-bounce { 0% { transform: scale(1); } 35% { transform: translateY(-10px); } 60% { transform: translateY(2px); } 100% { transform: none; } }
+@keyframes vmap-burst { from { transform: translate(0, 0); opacity: 1; } to { transform: translate(var(--dx), var(--dy)); opacity: 0; } }
+
+/* Ressources en surimpression, en haut de la carte. */
+.vmap-hud { display: flex; flex-wrap: wrap; gap: 8px; }
+.vmap-pill { display: inline-flex; align-items: baseline; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgb(255 250 240 / 0.88); backdrop-filter: blur(4px); color: #2b2118; box-shadow: 0 2px 6px rgb(0 0 0 / 0.15); font-variant-numeric: tabular-nums; }
+.vmap-pill strong { font-size: 1.05rem; }
+.vmap-pill small { color: #7a6a58; }
+
+/* Panneau d'un bâtiment : en bas à droite de la carte, ou en bas de l'écran sur téléphone. */
+.vmap-panel { position: absolute; right: 12px; bottom: 12px; width: min(320px, calc(100% - 24px)); padding: 14px 16px; border-radius: 14px; background: var(--panel); color: var(--ink); box-shadow: 0 10px 30px rgb(0 0 0 / 0.25); animation: vmap-rise 0.2s ease-out; }
+.vmap-panel.is-left { right: auto; left: 12px; }
+.vmap-panel header { display: flex; justify-content: space-between; align-items: center; }
+.vmap-panel h2 { margin: 0; font-size: 1.15rem; }
+.vmap-panel p { margin: 8px 0; }
+.vmap-close { background: transparent; color: var(--muted); font-size: 1.4rem; line-height: 1; padding: 2px 8px; }
+.vmap-up { color: var(--ok); }
+.vmap-cost { list-style: none; margin: 8px 0 12px; padding: 0; display: grid; gap: 4px; }
+.vmap-cost .is-missing { color: var(--warn); }
+.vmap-panel > button { width: 100%; padding: 10px; font-weight: 600; }
+.vmap-max { color: var(--ok); font-weight: 600; }
+@keyframes vmap-rise { from { opacity: 0; transform: translateY(10px); } }
+
+/*
+ * En portrait, la barre du haut passe au-dessus de la scène ; la scène est agrandie pour rester
+ * lisible, et défile horizontalement dans le ciel qui remplit l'écran.
+ */
+@media (max-aspect-ratio: 1/1) {
+  .vmap { display: flex; flex-direction: column; }
+  .vmap-top { position: static; padding: 12px 12px 0; }
+  .vmap-viewport { flex: 1; min-height: 0; display: flex; align-items: center; overflow-x: auto; overscroll-behavior-x: contain; }
+  .vmap-scene { width: 190%; height: auto; flex-shrink: 0; }
+}
+
+@media (max-width: 600px) {
+  .vmap-pill small, .vmap-tools .status, .vmap-icon-label { display: none; }
+  .vmap-panel, .vmap-panel.is-left { position: fixed; left: 12px; right: 12px; bottom: 12px; width: auto; z-index: 10; }
+}
+
+
+/* Animations coupées pour les joueurs qui ont demandé à réduire les animations. */
+@media (prefers-reduced-motion: reduce) {
+  .vmap *, .vmap-building { animation: none !important; transition: none !important; }
+  .vmap-float { display: none; }
+}
+
+/* Village : lieux du jeu (liens vers les autres pages) et leurs écriteaux. */
+.vmap-landmark { text-decoration: none; }
+.vmap-sign rect { fill: rgb(255 250 240 / 0.95); stroke: #8a5a2b; stroke-width: 1.5; }
+.vmap-sign text { font-size: 12px; font-weight: 700; fill: #5a3a1c; }
+.vmap-landmark:hover .vmap-sign rect, .vmap-landmark:focus-visible .vmap-sign rect { fill: #8a5a2b; }
+.vmap-landmark:hover .vmap-sign text, .vmap-landmark:focus-visible .vmap-sign text { fill: #fffaf0; }
+.vmap-window { fill: #ffd98a; stroke: #6b4a2f; stroke-width: 1; }
+.vmap-portal { fill: #2a1830; animation: vmap-portal 2.6s ease-in-out infinite; }
+.vmap-flame { animation: vmap-flicker 0.9s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: bottom center; }
+.vmap-rank { font-size: 10px; font-weight: 700; fill: #8a7e70; }
+@keyframes vmap-portal { 50% { fill: #5a2d6e; } }
+@keyframes vmap-flicker { from { transform: scaleY(1); opacity: 1; } to { transform: scaleY(0.8) skewX(4deg); opacity: 0.85; } }
+
+/* De nuit, les fenêtres et les flammes se détachent davantage. */
+:root[data-theme='dark'] .vmap-window { fill: #ffc85a; filter: drop-shadow(0 0 4px #ffb347); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .vmap-window { fill: #ffc85a; filter: drop-shadow(0 0 4px #ffb347); }
+}
