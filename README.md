@@ -41,6 +41,7 @@ aucune n'est obligatoire. Pour définir vos propres valeurs, copiez ce fichier e
 | `pnpm test` | Exécution des tests (Vitest) |
 | `pnpm test:coverage` | Exécution des tests et mesure de la couverture (rapport dans `coverage/`) |
 | `pnpm verify` | Ensemble des contrôles, à exécuter avant toute publication |
+| `pnpm test:e2e` | Tests de bout en bout de l'interface (Playwright, dossier `e2e/`), contre l'application construite et démarrée en mode production (port 3000 libre : arrêter `pnpm dev`), ou contre `E2E_BASE_URL` ; hors de `pnpm verify`, car ils demandent une application démarrée et un navigateur. Au premier usage : `pnpm exec playwright install chromium` |
 | `pnpm db:generate --name <nom>` | Production d'une migration après la modification d'un fichier `schema.ts` |
 | `pnpm exec tsx scripts/simulate-dungeon.ts` | Mesure de l'équilibre du Donjon par la simulation d'expéditions |
 | `pnpm db:migrate` | Application des migrations à la base désignée par `DATABASE_URL_UNPOOLED` ou `DATABASE_URL` |
@@ -212,6 +213,7 @@ sans la première ; sans la seconde, la route des tâches quotidiennes reste fer
 - [Bilan technique](docs/bilan-technique.md)
 - [Fiche de cadrage du module Caravane](docs/evaluation/fiche-cadrage.md)
 - [Document de rendu de l'évaluation](docs/evaluation/rendu.md)
+- [Journal des modifications](CHANGELOG.md)
 
 ## Conventions
 

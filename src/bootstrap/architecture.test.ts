@@ -1,4 +1,4 @@
-import { existsSync, readdirSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { sql } from 'drizzle-orm'
 import { describe, expect, it } from 'vitest'
@@ -34,6 +34,27 @@ describe("Fonctions d'aptitude", () => {
     for (const module of withData) {
       const file = path.join(process.cwd(), 'src/modules', module, 'personal-data.ts')
       expect(existsSync(file), `${module} n'a pas de fichier personal-data.ts`).toBe(true)
+    }
+  })
+
+  it("ne fait sortir la graine d'une caravane ni du domaine, ni du journal", () => {
+    // Évaluation finale, bonus B8 : la graine décide de l'issue d'un voyage (ADR 0012). Hors du
+    // domaine, seul le service la tire au sort, à l'envoi ; aucune vue, aucune table, aucun
+    // contrat, aucune route ni aucun écran n'en parle.
+    const root = path.join(process.cwd(), 'src/modules/caravan')
+    const files = readdirSync(root, { recursive: true, encoding: 'utf8' }).filter(
+      (file) =>
+        /\.tsx?$/.test(file) && !file.startsWith(`domain${path.sep}`) && !file.includes('.test.'),
+    )
+    for (const file of files) {
+      const lines = readFileSync(path.join(root, file), 'utf8')
+        .split('\n')
+        .filter((line) => /seed/i.test(line) && !line.trim().startsWith('//'))
+      const allowed = (line: string) => /seed: newSeed\(\)|newSeed/.test(line)
+      expect(
+        lines.filter((line) => !allowed(line)),
+        `${file} manipule la graine`,
+      ).toEqual([])
     }
   })
 })

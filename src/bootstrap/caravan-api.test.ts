@@ -76,6 +76,7 @@ describe('API du module Caravane', () => {
     expect((await api.get('/api/caravans/destinations', null)).status).toBe(401)
     expect((await api.get('/api/caravans/c1', null)).status).toBe(401)
     expect((await api.post('/api/caravans', {}, null)).status).toBe(401)
+    expect((await api.post('/api/caravans/expeditions', {}, null)).status).toBe(401)
   })
 
   it('présente les villages des autres joueurs comme destinations', async () => {

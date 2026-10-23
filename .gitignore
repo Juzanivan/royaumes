@@ -48,3 +48,7 @@ next-env.d.ts
 
 # Le modèle des variables d'environnement, lui, est versionné.
 !.env.example
+
+# Tests de bout en bout (Playwright)
+/test-results/
+/playwright-report/

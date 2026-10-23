@@ -10,6 +10,19 @@ const PUBLIC_ENTRIES = '^src/modules/[^/]+/(index\\.ts|contracts\\.ts|ui\\.tsx)$
 module.exports = {
   forbidden: [
     {
+      // Règle propre à la Caravane (évaluation finale, bonus B8) : l'interface ne charge aucun
+      // code du domaine qui tire l'issue d'un voyage d'une graine (décision, brigands, grotte,
+      // générateur). Elle ne reçoit que des vues, et les types et constantes de ses contrats.
+      name: 'caravan-ui-without-outcome',
+      comment:
+        "L'interface de la Caravane n'importe ni le decider, ni les brigands, ni la grotte, ni le générateur à graine.",
+      severity: 'error',
+      from: {
+        path: '^src/modules/caravan/(ui\\.tsx|expedition\\.tsx|presentation\\.tsx|journey/)',
+      },
+      to: { path: '^src/modules/caravan/domain/(caravan|brigands|cave|random|saga)\\.ts$' },
+    },
+    {
       // Règle 1, vue depuis un module : il n'atteint un autre module que par ses entrées publiques.
       // « $1 » reprend le nom du module d'origine, capturé dans « from ».
       name: 'module-encapsulation',
