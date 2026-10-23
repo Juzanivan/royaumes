@@ -321,3 +321,62 @@ body:has(.vmap) { overflow-x: hidden; }
 .vmap-peak-shade { fill: #6f6c79; }
 .vmap-peak-snow { fill: #f1f2f5; }
 .vmap-peak-snow-shade { fill: #d4d6de; }
+
+/*
+ * Décors des lieux (src/ui/places/) : une scène peinte derrière la page, qui couvre tout
+ * l'écran. La nuit, la scène s'assombrit (--place-dim), tandis que les sources de lumière
+ * (fenêtres, lanternes, flammes, lueurs) gardent leur éclat. Les salles fermées, éclairées
+ * par leurs feux, s'assombrissent moins que les lieux en plein air (--place-dim-indoor).
+ */
+:root { --place-dim: none; --place-dim-indoor: none; --place-light: none; --glow: 0.55; --window: #cfe6f2; }
+:root[data-theme='dark'] { --place-dim: brightness(0.62); --place-dim-indoor: brightness(0.82); --place-light: brightness(1.3); --glow: 1; --window: #ffc85a; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) { --place-dim: brightness(0.62); --place-dim-indoor: brightness(0.82); --place-light: brightness(1.3); --glow: 1; --window: #ffc85a; }
+}
+body:has(.place-backdrop) { background: transparent; }
+.place-backdrop { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: #1d1915; }
+.place-scene { display: block; width: 100%; height: 100%; filter: var(--place-dim); transition: filter 0.9s ease; }
+.place-backdrop:is([data-place='tavern'], [data-place='dungeon'], [data-place='ranking'], [data-place='account']) .place-scene { filter: var(--place-dim-indoor); }
+.place-sky-top { stop-color: var(--sky-top); }
+.place-sky-bottom { stop-color: var(--sky-bottom); }
+.place-stars { fill: #fff7d6; opacity: var(--stars); }
+.place-cloud { fill: var(--cloud); animation: place-drift 90s linear infinite alternate; }
+.place-glow { opacity: var(--glow); transition: opacity 0.9s ease; }
+.place-glow.is-flickering { animation: place-glow 2.4s ease-in-out infinite alternate; }
+.place-flame, .place-lamp { filter: var(--place-light); }
+.place-flame path { transform-box: fill-box; transform-origin: 50% 100%; animation: place-flicker 0.9s ease-in-out infinite alternate; }
+.place-lamp { fill: #ffd27a; }
+.place-window { fill: var(--window); stroke: #5a3b22; stroke-width: 3; filter: var(--place-light); transition: fill 0.9s ease; }
+.place-ground { fill: #9a8c78; }
+.place-cobble { fill: #b3a691; stroke: #8a7d6a; stroke-width: 2; }
+.place-bunting path:not(:first-child) { transform-box: fill-box; transform-origin: 50% 0; animation: place-sway 3s ease-in-out infinite alternate; }
+.dungeon-depths { animation: dungeon-pulse 5s ease-in-out infinite alternate; }
+.dungeon-fog { animation: dungeon-drift 28s ease-in-out infinite alternate; }
+.dungeon-chain { animation: place-sway 6s ease-in-out infinite alternate; }
+.ranking-banner { animation: ranking-wave 5s ease-in-out infinite alternate; }
+.ranking-sparkle { transform-box: fill-box; transform-origin: center; animation: ranking-sparkle 2.2s ease-in-out infinite; }
+@keyframes place-drift { from { transform: translateX(-60px); } to { transform: translateX(60px); } }
+@keyframes place-glow { 0% { opacity: calc(var(--glow) * 0.8); } 50% { opacity: var(--glow); } 100% { opacity: calc(var(--glow) * 0.88); } }
+@keyframes place-flicker { from { transform: scale(1, 1) skewX(-3deg); } to { transform: scale(0.9, 1.12) skewX(4deg); } }
+@keyframes place-sway { from { transform: rotate(-2deg); } to { transform: rotate(2deg); } }
+@keyframes dungeon-pulse { from { opacity: 0.8; } to { opacity: 1; } }
+@keyframes dungeon-drift { from { transform: translateX(-80px); } to { transform: translateX(80px); } }
+@keyframes ranking-wave { from { transform: skewX(-1.5deg); } to { transform: skewX(1.5deg); } }
+@keyframes ranking-sparkle { 0%, 60%, 100% { transform: scale(0.2); opacity: 0; } 75% { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .place-backdrop * { animation: none !important; }
+}
+
+/* Sur un décor, le contenu de la page est posé sur un parchemin translucide, et la barre
+   de retour au village devient une étiquette flottante. */
+main:has(.place-sheet) { padding-top: 16px; }
+main:has(.place-sheet) .topbar { margin-bottom: 12px; padding: 8px 10px 8px 16px; border: 0; border-radius: 999px; background: color-mix(in srgb, var(--panel) 82%, transparent); backdrop-filter: blur(6px); box-shadow: 0 6px 18px rgb(0 0 0 / 0.25); }
+.place-sheet {
+  padding: 20px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--panel) 78%, transparent);
+  backdrop-filter: blur(8px) saturate(1.1);
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.35), inset 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+.place-sheet .panel { background: color-mix(in srgb, var(--panel) 92%, transparent); box-shadow: 0 2px 8px rgb(0 0 0 / 0.12); }
+@media (max-width: 600px) { .place-sheet { padding: 14px; border-radius: 14px; } }
