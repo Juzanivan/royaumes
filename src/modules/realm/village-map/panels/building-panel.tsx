@@ -1,9 +1,6 @@
 import { look } from '@/ui/theme'
 import { type Building, CATALOG, MAX_LEVEL, type Stock, type VillageView } from '../../contracts'
-
-/** Indique si le stock couvre un coût ; faux si le coût est absent (niveau maximal). */
-const affordable = (stock: Stock, cost: Partial<Stock> | null) =>
-  !!cost && Object.entries(cost).every(([r, n]) => stock[r as keyof Stock] >= (n ?? 0))
+import { affordable } from '../affordable'
 
 /**
  * Panneau d'un bâtiment : niveau et production, actuels et après amélioration, coût de

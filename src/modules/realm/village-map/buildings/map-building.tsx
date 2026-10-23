@@ -10,6 +10,7 @@ import { ConstructionSite } from './construction-site'
 import { LevelBadge } from './level-badge'
 import { ProductionFloat } from './production-float'
 import { UpgradeBurst } from './upgrade-burst'
+import { UpgradeHint } from './upgrade-hint'
 
 /**
  * Bâtiment de la carte, à son emplacement : son dessin selon son niveau, son blason, sa
@@ -22,6 +23,7 @@ export function MapBuilding({
   selected,
   upgrading,
   production,
+  canUpgrade,
   onSelect,
 }: {
   building: Building
@@ -30,6 +32,8 @@ export function MapBuilding({
   upgrading: boolean
   /** Production par minute de sa ressource, et instant où une nouvelle unité s'ajoute au stock. */
   production: { perMinute: number; anchor: number }
+  /** Vrai si le stock permet d'améliorer le bâtiment : une flèche le signale. */
+  canUpgrade: boolean
   onSelect: () => void
 }) {
   const [x, y] = SLOTS[building]
@@ -54,7 +58,7 @@ export function MapBuilding({
       role="button"
       tabIndex={0}
       aria-pressed={selected}
-      aria-label={`${look(building).label}, niveau ${level}`}
+      aria-label={`${look(building).label}, niveau ${level}${canUpgrade ? ', amélioration possible' : ''}`}
       onClick={onSelect}
       onKeyDown={onKeyDown}
     >
@@ -71,6 +75,7 @@ export function MapBuilding({
         />
       )}
       <LevelBadge px={bx} py={by} level={level} />
+      {canUpgrade && <UpgradeHint px={bx + 12} py={by - 10} />}
       <NameSign px={bx} py={by - 26} glyph={look(building).glyph} label={look(building).label} />
     </g>
   )

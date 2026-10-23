@@ -547,3 +547,10 @@ main:has(.journey) .topbar { position: relative; z-index: 2; margin-bottom: 0; p
   .vmap-pond * { animation: none !important; }
   .vmap-duck { offset-distance: 20%; }
 }
+
+/* Flèche des bâtiments qui peuvent être améliorés : elle sautille et brille doucement. */
+.vmap-upgrade-hint { pointer-events: none; animation: vmap-hint 0.9s ease-in-out infinite alternate; }
+.vmap-upgrade-hint circle { fill: #3f9d4a; stroke: #fff; stroke-width: 2; filter: drop-shadow(0 0 4px rgb(120 230 120 / 0.8)); }
+.vmap-upgrade-hint path { fill: #fff; }
+@keyframes vmap-hint { from { transform: translateY(0); } to { transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .vmap-upgrade-hint { animation: none; } }

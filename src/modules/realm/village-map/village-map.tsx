@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { DESTINATIONS } from '@/ui/destinations'
 import { BUILDINGS, type Building, CATALOG, type Stock, type VillageView } from '../contracts'
+import { affordable } from './affordable'
 import { Castle } from './buildings/castle'
 import { MapBuilding } from './buildings/map-building'
 import { iso, ORIGIN_X } from './geometry/iso'
@@ -141,6 +142,7 @@ export function VillageMap({
           selected={selected === b}
           upgrading={upgrading.includes(b)}
           production={productionOf(view, b)}
+          canUpgrade={affordable(stock, view.nextCosts[b])}
           onSelect={() => toggle(b)}
         />
       ),
