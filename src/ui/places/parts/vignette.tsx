@@ -14,7 +14,7 @@ export function Vignette({
           <stop offset="1" stopColor={color} stopOpacity={strength} />
         </radialGradient>
       </defs>
-      <rect width={1600} height={900} fill="url(#place-vignette)" />
+      <rect className="place-vignette" width={1600} height={900} fill="url(#place-vignette)" />
     </g>
   )
 }

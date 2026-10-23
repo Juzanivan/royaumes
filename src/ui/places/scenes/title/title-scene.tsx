@@ -1,4 +1,5 @@
 import { Cloud } from '../../parts/cloud'
+import { SceneCelestial } from '../../parts/scene-celestial'
 import { Sky } from '../../parts/sky'
 import { Birds } from './birds'
 import { TitleCastle } from './castle'
@@ -38,7 +39,9 @@ export function TitleScene() {
   return (
     <>
       <Sky h={900} />
-      <Cloud x={260} y={130} s={1.2} d={140} />
+      {/* L'astre se couche derrière les montagnes. */}
+      <SceneCelestial x={420} y={150} scale={1.8} drop={340} />
+      <Cloud x={180} y={240} s={1.2} d={140} />
       <Cloud x={1150} y={90} s={0.9} d={170} />
       <Cloud x={1450} y={210} s={1.1} d={120} />
       <Birds y={200} />

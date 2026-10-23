@@ -1,5 +1,6 @@
 import { Barrel } from '../../parts/barrel'
 import { Crate } from '../../parts/crate'
+import { SceneCelestial } from '../../parts/scene-celestial'
 import { Sky } from '../../parts/sky'
 import { WallTorch } from '../../parts/wall-torch'
 import { Cobbles } from '../market/cobbles'
@@ -18,6 +19,8 @@ export function CaravanScene() {
   return (
     <>
       <Sky h={GROUND - 380} />
+      {/* L'astre se couche derrière l'auvent de l'écurie. */}
+      <SceneCelestial x={1330} y={115} scale={1.5} drop={200} />
       <Stable y={GROUND} count={5} />
       <WallTorch x={320} y={300} />
       <WallTorch x={1280} y={300} />

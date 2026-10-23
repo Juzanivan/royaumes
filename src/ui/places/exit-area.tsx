@@ -34,14 +34,19 @@ export function ExitArea({
     return () => window.removeEventListener('keydown', onKey)
   }, [router, to])
 
-  const follow = (e: MouseEvent) => setHint({ x: e.clientX, y: e.clientY })
+  // Les éléments interactifs du décor (le soleil ou la lune) portent data-no-exit : survolés,
+  // ils masquent l'étiquette ; cliqués, ils ne font pas sortir du lieu.
+  const inert = (e: MouseEvent) => (e.target as Element).closest('[data-no-exit]') !== null
+  const follow = (e: MouseEvent) => setHint(inert(e) ? null : { x: e.clientX, y: e.clientY })
   return (
     <>
       {/* biome-ignore lint/a11y/noStaticElementInteractions: équivalents au clavier : Échap, et le lien d'évitement de la mise en page. */}
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: la touche Échap est écoutée sur toute la page. */}
       <div
         className={className ? `${className} exit-area` : 'exit-area'}
-        onClick={() => router.push(to)}
+        onClick={(e) => {
+          if (!inert(e)) router.push(to)
+        }}
         onMouseMove={follow}
         onMouseLeave={() => setHint(null)}
       >

@@ -28,7 +28,7 @@ export function RankingScene() {
         />
       ))}
       <ArchedWindow x={190} y={150} w={130} h={300} frame="#9f9481" />
-      <ArchedWindow x={1280} y={150} w={130} h={300} frame="#9f9481" />
+      <ArchedWindow x={1280} y={150} w={130} h={300} frame="#9f9481" celestial />
       <ArchedWindow x={735} y={60} w={130} h={220} frame="#9f9481" />
       <Banner x={530} y={70} w={130} l={330} color="#2c3e8f" emblem="sword" />
       <Banner x={1070} y={70} w={130} l={330} color="#7b1f2e" emblem="tower" />

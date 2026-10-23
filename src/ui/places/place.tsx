@@ -36,6 +36,17 @@ const FULL_SCENES = [/^\/caravan\/[^/]+/]
 /** Indique si une page peint elle-même sa scène, sans décor ni parchemin. */
 const isFullScene = (pathname: string) => FULL_SCENES.some((re) => re.test(pathname))
 
+/** Description de chaque décor, lue par les lecteurs d'écran. */
+const SCENE_TITLES: Record<SceneKind, string> = {
+  market: 'Décor : la place du Marché',
+  tavern: 'Décor : la salle de la Taverne',
+  dungeon: "Décor : l'entrée du Donjon",
+  ranking: 'Décor : la salle des trophées',
+  account: 'Décor : les archives du château',
+  caravan: 'Décor : la cour du relais des caravanes',
+  title: 'Décor : le château du royaume',
+}
+
 /** Lieu correspondant à une adresse du jeu, ou null pour une page sans décor (le village). */
 export function placeFor(pathname: string): PlaceKind | null {
   if (isFullScene(pathname)) return null
@@ -45,8 +56,8 @@ export function placeFor(pathname: string): PlaceKind | null {
 
 /**
  * Décor d'un lieu, peint derrière la page : le joueur a l'impression d'être au marché, à la
- * taverne ou dans le donjon. Il est purement décoratif pour les lecteurs d'écran, et suit le
- * jour et la nuit comme la carte du village. Les écrans des modules ne changent pas : leur
+ * taverne ou dans le donjon. Il suit le jour et la nuit comme la carte du village, et, comme
+ * elle, porte le soleil ou la lune qu'un clic fait se coucher pour changer de thème. Les écrans des modules ne changent pas : leur
  * contenu est seulement posé sur un parchemin (classe place-sheet).
  *
  * Avec exit, le décor est aussi la sortie du lieu : un clic à côté du parchemin ramène au
@@ -55,12 +66,8 @@ export function placeFor(pathname: string): PlaceKind | null {
 export function PlaceBackdrop({ kind, exit = false }: { kind: SceneKind; exit?: boolean }) {
   const Scene = SCENES[kind]
   const scene = (
-    <svg
-      aria-hidden="true"
-      className="place-scene"
-      viewBox="0 0 1600 900"
-      preserveAspectRatio="xMidYMax slice"
-    >
+    <svg className="place-scene" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMax slice">
+      <title>{SCENE_TITLES[kind]}</title>
       <SkyGradient />
       <GlowGradient />
       <Scene />
@@ -73,7 +80,7 @@ export function PlaceBackdrop({ kind, exit = false }: { kind: SceneKind; exit?: 
       </div>
     </ExitArea>
   ) : (
-    <div className="place-backdrop" aria-hidden="true">
+    <div className="place-backdrop">
       <div data-place={kind} className="place-backdrop-scene">
         {scene}
       </div>

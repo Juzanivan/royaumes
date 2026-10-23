@@ -1,3 +1,4 @@
+import { SceneCelestial } from '@/ui/places'
 import { range } from './parallax'
 
 /** Ciel de la route : son dégradé suit le jour et la nuit, comme celui de la carte du village. */
@@ -20,11 +21,13 @@ export function JourneySky() {
           <circle key={i} cx={(i * 397) % 1600} cy={(i * 131) % 380} r={1.2 + (i % 3) * 0.5} />
         ))}
       </g>
+      {/* Le soleil, ou la lune : un clic le fait se coucher derrière les collines. */}
+      <SceneCelestial x={1180} y={150} scale={1.7} drop={330} />
       <g className="journey-clouds">
         {[
           [200, 120, 1],
           [760, 70, 0.8],
-          [1250, 150, 1.1],
+          [1420, 210, 1.1],
         ].map(([x, y, s]) => (
           <g key={x} transform={`translate(${x} ${y}) scale(${s})`}>
             <ellipse cx={0} cy={0} rx={80} ry={26} />

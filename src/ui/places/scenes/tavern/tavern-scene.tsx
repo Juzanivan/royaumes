@@ -19,7 +19,7 @@ export function TavernScene() {
   return (
     <>
       <PlankWall top={CEILING} bottom={FLOOR} />
-      <ArchedWindow x={150} y={190} w={150} h={210} frame="#3e2716" />
+      <ArchedWindow x={150} y={190} w={150} h={210} frame="#3e2716" celestial />
       <ArchedWindow x={1310} y={190} w={150} h={210} frame="#3e2716" />
       <Fireplace x={800} y={FLOOR} />
       <BottleShelf x={1060} y={300} w={210} />

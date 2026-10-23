@@ -117,8 +117,6 @@ input {
 .player-menu p { margin: 8px 0; }
 .player-menu a { color: var(--accent); }
 
-/* Sélecteur de thème, dans la navigation. */
-.theme-toggle { background: transparent; color: var(--ink); padding: 4px 8px; border: 1px solid color-mix(in srgb, var(--muted) 35%, transparent); }
 
 /* Bouton présenté comme un lien. */
 button.link { background: none; color: var(--accent); padding: 0; }

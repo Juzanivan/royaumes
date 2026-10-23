@@ -72,12 +72,8 @@ export function JourneyScene({
     phase === 'returning' ? 'is-reversed' : '',
   ].join(' ')
   return (
-    <svg
-      className={classes}
-      viewBox="0 0 1600 900"
-      preserveAspectRatio="xMidYMax slice"
-      aria-hidden="true"
-    >
+    <svg className={classes} viewBox="0 0 1600 900" preserveAspectRatio="xMidYMax slice">
+      <title>{`La caravane sur la route de ${destination}`}</title>
       <JourneySky />
       <Landscape />
       <g

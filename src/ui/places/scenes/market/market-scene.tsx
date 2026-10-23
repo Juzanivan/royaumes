@@ -1,6 +1,7 @@
 import { Barrel } from '../../parts/barrel'
 import { Cloud } from '../../parts/cloud'
 import { Crate } from '../../parts/crate'
+import { SceneCelestial } from '../../parts/scene-celestial'
 import { Sky } from '../../parts/sky'
 import { Bunting } from './bunting'
 import { Cobbles } from './cobbles'
@@ -27,9 +28,11 @@ export function MarketScene() {
   return (
     <>
       <Sky h={GROUND} />
+      {/* Le soleil, ou la lune, se couche derrière les toits de la place. */}
+      <SceneCelestial x={1230} y={120} scale={1.7} drop={260} />
       <Cloud x={260} y={110} s={1.1} d={120} />
       <Cloud x={980} y={70} s={0.8} d={150} />
-      <Cloud x={1380} y={150} s={1} d={100} />
+      <Cloud x={1480} y={170} s={1} d={100} />
       {HOUSES.map(([x, w, h, wall, roof]) => (
         <Facade key={x} x={x} y={GROUND} w={w} h={h} wall={wall} roof={roof} />
       ))}

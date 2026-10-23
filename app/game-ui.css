@@ -151,7 +151,7 @@ a.button.is-secondary {
   text-shadow: none;
 }
 /* Boutons qui ne doivent pas prendre l'apparence dorée. */
-button.link, .vmap-close, .theme-toggle, .vmap-icon {
+button.link, .vmap-close, .vmap-icon {
   font-family: inherit;
   letter-spacing: normal;
   text-shadow: none;
@@ -237,20 +237,6 @@ input::placeholder { color: color-mix(in srgb, var(--sheet-ink) 45%, transparent
 /* --- Mes données : la suppression est une zone de danger ---------------------------------- */
 .place-sheet section[aria-label='Supprimer mon compte'] { border-color: color-mix(in srgb, var(--warn) 55%, transparent); }
 .place-sheet section[aria-label='Supprimer mon compte'] button { --btn-top: #f08a6c; --btn-mid: #c0392b; --btn-bottom: #8e2a1f; --btn-ink: #fff4ec; text-shadow: 0 1px 0 rgb(0 0 0 / 0.35); }
-
-/* --- Bouton de thème flottant, en haut à droite des lieux ------------------------------- */
-.corner-tools { position: fixed; top: 14px; right: 14px; z-index: 3; }
-@media (max-width: 600px) { .corner-tools { top: auto; bottom: 14px; } }
-.corner-tools .theme-toggle {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  font-size: 1.3rem;
-  background: radial-gradient(circle at 35% 30%, #fff8e1, var(--sheet-mid));
-  box-shadow: 0 0 0 3px var(--frame-gold), 0 0 0 6px var(--frame-wood), 0 6px 14px rgb(0 0 0 / 0.35);
-  transition: transform 0.15s ease;
-}
-.corner-tools .theme-toggle:hover { transform: rotate(-12deg) scale(1.06); }
 
 /* --- Sortie d'un lieu par le décor ------------------------------------------------------- */
 /* Le contenu passe au-dessus du décor, mais seul le parchemin capte les clics : partout
@@ -440,3 +426,14 @@ main:has(.title-screen) { max-width: none; padding: 0; }
 .vmap-panel h2 { font-family: var(--font-heading); }
 .vmap-panel h2::after { display: none; }
 .vmap-close { color: var(--sheet-ink); }
+
+/* --- Soleil et lune des décors : ils remplacent le bouton de thème -------------------------- */
+.scene-celestial.is-setting { animation: scene-celestial-set ease-in forwards; }
+.scene-celestial.is-rising { animation: scene-celestial-rise ease-out both; }
+@keyframes scene-celestial-set { from { transform: translate(0, 0); } to { transform: translate(-30px, var(--drop)); } }
+@keyframes scene-celestial-rise { from { transform: translate(-30px, var(--drop)); } to { transform: translate(0, 0); } }
+.scene-celestial:hover, .scene-celestial:focus-visible { filter: drop-shadow(0 0 14px rgb(255 230 150 / 0.95)); }
+.dungeon-bars { pointer-events: none; }
+.window-frame { pointer-events: none; }
+/* Voiles et lueurs du décor : ils ne doivent pas intercepter le clic destiné à l'astre. */
+.place-vignette, .place-glow, .dungeon-fog, .place-cloud { pointer-events: none; }
