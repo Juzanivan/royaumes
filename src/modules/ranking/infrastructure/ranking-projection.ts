@@ -1,13 +1,15 @@
 import { eq, inArray, sql } from 'drizzle-orm'
+import { CARAVAN_STREAM_PREFIX } from '@/modules/caravan/contracts'
 import { GAME_CHANNEL_PREFIX } from '@/modules/dungeon/contracts'
 import { VILLAGE_CHANNEL_PREFIX } from '@/modules/realm/contracts'
 import type { StoredEvent } from '@/platform/event-store/event-store'
 import type { DbTransaction, Projection } from '@/platform/projection/projection'
-import { gamePlayers, players } from './schema'
+import { caravanSenders, gamePlayers, players } from './schema'
 
 /*
  * Données des événements lus par le Classement. Elles forment le « langage publié »
- * du Village et du Donjon : le Classement en dépend, comme tout lecteur du journal.
+ * du Village, du Donjon et de la Caravane : le Classement en dépend, comme tout lecteur du
+ * journal.
  * Seuls les champs utiles sont décrits.
  */
 interface GameCreatedData {
@@ -25,6 +27,9 @@ interface GameEndedData {
 interface VillageFoundedData {
   name: string
 }
+interface CaravanSentData {
+  senderId: string
+}
 
 /** Identifiant tiré du nom d'un flux : « dungeon-7f3a » donne « 7f3a ». */
 const idFrom = (event: StoredEvent, prefix: string) => event.stream.slice(prefix.length)
@@ -41,11 +46,22 @@ async function recordPlayer(tx: DbTransaction, gameId: string, playerId: string,
 /**
  * Projection du classement : met à jour les totaux des joueurs à partir du journal.
  * Version 2 : ajout du meilleur butin.
+ * Version 3 : ajout des caravanes livrées, lues dans le langage publié de la Caravane.
  */
 export const rankingProjection: Projection = {
   name: 'ranking',
-  version: 2,
-  eventTypes: ['GameCreated', 'PlayerJoined', 'GameEnded', 'VillageFounded', 'BuildingUpgraded'],
+  version: 3,
+  eventTypes: [
+    'GameCreated',
+    'PlayerJoined',
+    'GameEnded',
+    'VillageFounded',
+    'BuildingUpgraded',
+    'CaravanSent',
+    'CaravanDelivered',
+    'CaravanCancelled',
+    'CaravanAmbushed',
+  ],
 
   async apply(event, tx) {
     switch (event.type) {
@@ -105,10 +121,49 @@ export const rankingProjection: Projection = {
           })
         return
       }
+
+      // Caravanes : l'expéditeur est retenu à l'envoi, et la livraison lui est attribuée.
+      case 'CaravanSent': {
+        if (!event.stream.startsWith(CARAVAN_STREAM_PREFIX)) return
+        const data = event.data as unknown as CaravanSentData
+        await tx
+          .insert(caravanSenders)
+          .values({ caravanId: idFrom(event, CARAVAN_STREAM_PREFIX), senderId: data.senderId })
+          .onConflictDoNothing()
+        return
+      }
+
+      case 'CaravanDelivered': {
+        const caravanId = idFrom(event, CARAVAN_STREAM_PREFIX)
+        const [row] = await tx
+          .select()
+          .from(caravanSenders)
+          .where(eq(caravanSenders.caravanId, caravanId))
+        if (row) {
+          await tx
+            .insert(players)
+            .values({ playerId: row.senderId, caravans: 1 })
+            .onConflictDoUpdate({
+              target: players.playerId,
+              set: { caravans: sql`${players.caravans} + 1` },
+            })
+        }
+        await tx.delete(caravanSenders).where(eq(caravanSenders.caravanId, caravanId))
+        return
+      }
+
+      // Caravane annulée ou attaquée : elle ne compte pas, son expéditeur n'est plus utile.
+      case 'CaravanCancelled':
+      case 'CaravanAmbushed':
+        await tx
+          .delete(caravanSenders)
+          .where(eq(caravanSenders.caravanId, idFrom(event, CARAVAN_STREAM_PREFIX)))
+        return
     }
   },
 
   async reset(tx) {
+    await tx.delete(caravanSenders)
     await tx.delete(gamePlayers)
     await tx.delete(players)
   },

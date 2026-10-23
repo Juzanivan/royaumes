@@ -149,6 +149,12 @@ describe('API du module Caravane', () => {
     // Aucune ressource n'est créée : ce qu'Alice a perdu, Bob l'a reçu.
     expect(await gapWithCarol(api, 'bob')).toEqual({ wood: 60, stone: 20, gold: 0 })
     expect(await gapWithCarol(api, 'alice')).toEqual({ wood: -60, stone: -20, gold: 0 })
+    // Le Classement, qui lit le langage publié de la Caravane, compte la livraison d'Alice.
+    const { entries } = (await (await api.get('/api/ranking/players')).json()) as {
+      entries: { playerId: string; caravans: number }[]
+    }
+    expect(entries.find((e) => e.playerId === 'alice')?.caravans).toBe(1)
+    expect(entries.find((e) => e.playerId === 'bob')?.caravans ?? 0).toBe(0)
   })
 
   it("rend à l'expéditeur ce que les brigands ont laissé, et ne révèle l'attaque qu'à son heure", async () => {

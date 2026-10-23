@@ -16,6 +16,18 @@ export const players = ranking.table('players', {
   upgrades: integer('upgrades').notNull().default(0),
   /** Or rapporté par la meilleure expédition gagnée ; ajouté par la version 2 de la projection. */
   bestLoot: integer('best_loot').notNull().default(0),
+  /** Caravanes livrées par le joueur à d'autres villages ; ajouté par la version 3. */
+  caravans: integer('caravans').notNull().default(0),
+})
+
+/**
+ * Expéditeur de chaque caravane en route, retenu jusqu'à son issue : l'événement
+ * CaravanDelivered ne désigne que la caravane, et cette table indique à qui attribuer la
+ * livraison. Une caravane annulée ou attaquée en sort sans rien compter.
+ */
+export const caravanSenders = ranking.table('caravan_senders', {
+  caravanId: text('caravan_id').primaryKey(),
+  senderId: text('sender_id').notNull(),
 })
 
 /**

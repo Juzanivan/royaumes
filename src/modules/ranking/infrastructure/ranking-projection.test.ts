@@ -91,4 +91,30 @@ describe('Projection du classement', () => {
       [3, 'carol'],
     ])
   })
+
+  it('compte les caravanes livrées par leur expéditeur, et non celles annulées ou attaquées', async () => {
+    const sent = (senderId: string): NewEvent => ({
+      type: 'CaravanSent',
+      data: { senderId, senderName: senderId, recipientId: 'zoe', recipientName: 'Bourg' },
+    })
+    await store.append('caravan-c1', 0, [
+      sent('alice'),
+      { type: 'CaravanDelivered', data: { at: 1 } },
+    ])
+    await store.append('caravan-c2', 0, [
+      sent('alice'),
+      { type: 'CaravanAmbushed', data: { at: 1 } },
+    ])
+    await store.append('caravan-c3', 0, [
+      sent('bob'),
+      { type: 'CaravanCancelled', data: { at: 1 } },
+    ])
+    await store.append('caravan-c4', 0, [
+      sent('alice'),
+      { type: 'CaravanDelivered', data: { at: 2 } },
+    ])
+
+    expect(await entryOf('alice')).toMatchObject({ caravans: 2 })
+    expect(await entryOf('bob')).toBeUndefined()
+  })
 })

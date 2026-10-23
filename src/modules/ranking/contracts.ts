@@ -17,6 +17,8 @@ export interface RankingEntry {
   upgrades: number
   /** Or rapporté par la meilleure expédition gagnée. */
   bestLoot: number
+  /** Caravanes livrées à d'autres villages. */
+  caravans: number
 }
 
 /** Classement renvoyé par l'API. */

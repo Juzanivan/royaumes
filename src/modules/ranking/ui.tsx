@@ -94,6 +94,9 @@ export function RankingScreen({ userId }: { userId: string }) {
                 </th>
                 <th>Meilleur butin</th>
                 <th>Améliorations</th>
+                <th>
+                  <Entity kind="caravan" /> Caravanes
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -109,6 +112,7 @@ export function RankingScreen({ userId }: { userId: string }) {
                   <td>{entry.gold}</td>
                   <td>{entry.bestLoot}</td>
                   <td>{entry.upgrades}</td>
+                  <td>{entry.caravans}</td>
                 </tr>
               ))}
             </tbody>
