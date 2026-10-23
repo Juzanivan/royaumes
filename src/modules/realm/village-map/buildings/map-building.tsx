@@ -1,6 +1,7 @@
 import type { KeyboardEvent } from 'react'
 import { look } from '@/ui/theme'
 import { type Building, CATALOG } from '../../contracts'
+import { NameSign } from '../details/name-sign'
 import { iso } from '../geometry/iso'
 import { SLOTS } from '../layout'
 import { tierOf } from '../tiers'
@@ -67,6 +68,7 @@ export function MapBuilding({
         />
       )}
       <LevelBadge px={bx} py={by} level={level} />
+      <NameSign px={bx} py={by - 26} glyph={look(building).glyph} label={look(building).label} />
     </g>
   )
 }

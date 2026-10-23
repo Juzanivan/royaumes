@@ -14,7 +14,7 @@ export const CASTLE: Pt = [6.3, 6.3]
 export const SLOTS: Record<Building, Pt> = {
   sawmill: [2.6, 7.6],
   quarry: [8.5, 3.1],
-  mine: [1.7, 4.6],
+  mine: [2.4, 4.4],
 }
 
 /**
@@ -26,8 +26,8 @@ export const SLOTS: Record<Building, Pt> = {
 export const LANDMARKS: Record<DestinationKind, Pt> = {
   dungeon: [3.4, 1.6],
   ranking: [9.9, 7.7],
-  market: [9.9, 5.0],
-  tavern: [4.9, 10.2],
+  market: [9.5, 5.0],
+  tavern: [4.9, 9.8],
 }
 
 /** Centre de la mare. */
@@ -50,7 +50,7 @@ export const DECOR: DecorItem[] = [
   { kind: 'tree', x: 0.5, y: 6.3, scale: 0.85 },
   // Abords de la mine.
   { kind: 'rock', x: 0.5, y: 3.2, scale: 0.9 },
-  { kind: 'rock', x: 2.9, y: 3.0, scale: 0.7 },
+  { kind: 'rock', x: 1.1, y: 2.6, scale: 0.7 },
   { kind: 'tree', x: 5.4, y: 0.6, scale: 0.95 },
   // Rochers, à droite, autour de la carrière.
   { kind: 'rock', x: 9.3, y: 1.2, scale: 1.2 },

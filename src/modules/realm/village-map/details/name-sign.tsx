@@ -1,5 +1,8 @@
-/** Écriteau qui nomme un lieu, centré à la position (px, py) de l'écran. */
-export function LandmarkSign({
+/**
+ * Écriteau qui nomme un bâtiment ou un lieu, centré à la position (px, py) de l'écran.
+ * Il n'apparaît qu'au survol ou lorsque l'élément reçoit le focus du clavier (voir globals.css).
+ */
+export function NameSign({
   px,
   py,
   glyph,

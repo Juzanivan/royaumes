@@ -21,7 +21,7 @@ import { ResourceHud } from './panels/resource-hud'
 import { Celestial } from './scenery/celestial'
 import { Decor } from './scenery/decor'
 import { Ground } from './scenery/ground'
-import { Mountains } from './scenery/mountains'
+import { MountainRidge } from './scenery/mountain-ridge'
 import { Palisade } from './scenery/palisade'
 import { Paths } from './scenery/paths'
 import { Pond } from './scenery/pond'
@@ -157,17 +157,17 @@ export function VillageMap({
             </radialGradient>
           </defs>
           <Sky />
-          {/* L'astre est dessiné avant les montagnes : il se couche derrière elles. */}
+          {/* L'astre est dessiné avant le terrain et les montagnes : il se couche derrière eux. */}
           <Celestial />
-          <Mountains />
           <Ground />
+          {/* La chaîne de montagnes borde l'arrière du terrain, comme la palissade en borde l'avant. */}
+          <MountainRidge />
           <Paths />
           <Pond />
-          {/* La palissade borde le terrain : elle est dessinée avant les bâtiments, afin que les
-            écriteaux placés devant les lieux du bord restent lisibles. */}
-          <Palisade />
           {items.map((item) => item.node)}
           <Villagers />
+          {/* La palissade borde l'avant du terrain : elle passe devant tout ce qu'elle longe. */}
+          <Palisade />
         </svg>
       </div>
       {selected === 'castle' && (

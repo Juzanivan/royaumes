@@ -281,8 +281,6 @@ body:has(.vmap) { overflow-x: hidden; }
 .vmap-landmark { text-decoration: none; }
 .vmap-sign rect { fill: rgb(255 250 240 / 0.95); stroke: #8a5a2b; stroke-width: 1.5; }
 .vmap-sign text { font-size: 12px; font-weight: 700; fill: #5a3a1c; }
-.vmap-landmark:hover .vmap-sign rect, .vmap-landmark:focus-visible .vmap-sign rect { fill: #8a5a2b; }
-.vmap-landmark:hover .vmap-sign text, .vmap-landmark:focus-visible .vmap-sign text { fill: #fffaf0; }
 .vmap-window { fill: #ffd98a; stroke: #6b4a2f; stroke-width: 1; }
 .vmap-portal { fill: #2a1830; animation: vmap-portal 2.6s ease-in-out infinite; }
 .vmap-flame { animation: vmap-flicker 0.9s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: bottom center; }
@@ -307,3 +305,19 @@ body:has(.vmap) { overflow-x: hidden; }
 .vmap-moon-glow { fill: rgb(240 236 210 / 0.15); }
 @keyframes vmap-celestial-set { from { transform: translate(0, 0); } to { transform: translate(-40px, 175px); } }
 @keyframes vmap-celestial-rise { from { transform: translate(-40px, 175px); } to { transform: translate(0, 0); } }
+
+/*
+ * Les noms des bâtiments et des lieux n'apparaissent qu'au survol, ou au focus du clavier.
+ * Sur un écran tactile, sans survol, ils restent affichés : c'est le seul moyen de les lire.
+ */
+.vmap-sign { opacity: 0; transition: opacity 0.15s ease; pointer-events: none; }
+.vmap-building:hover .vmap-sign, .vmap-building:focus-visible .vmap-sign { opacity: 1; }
+@media (hover: none) {
+  .vmap-sign { opacity: 1; }
+}
+
+/* Chaîne de montagnes le long des bords arrière du terrain. */
+.vmap-peak-lit { fill: #8d8a97; }
+.vmap-peak-shade { fill: #6f6c79; }
+.vmap-peak-snow { fill: #f1f2f5; }
+.vmap-peak-snow-shade { fill: #d4d6de; }

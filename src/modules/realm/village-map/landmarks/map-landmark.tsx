@@ -2,13 +2,14 @@ import { useRouter } from 'next/navigation'
 import type { MouseEvent } from 'react'
 import type { Destination } from '@/ui/destinations'
 import { look } from '@/ui/theme'
+import { NameSign } from '../details/name-sign'
 import { iso } from '../geometry/iso'
 import { LANDMARKS } from '../layout'
 import { LANDMARK_ART } from './landmark-art'
-import { LandmarkSign } from './landmark-sign'
 
 /**
- * Lieu du jeu sur la carte : son dessin et son écriteau forment un lien vers sa page. Le lien
+ * Lieu du jeu sur la carte : son dessin et son écriteau, qui apparaît au survol, forment un
+ * lien vers sa page. Le lien
  * est un élément <a> du SVG : il se suit au clic et au clavier, et s'ouvre dans un nouvel
  * onglet comme tout lien ; le clic simple navigue sans recharger la page.
  */
@@ -33,7 +34,7 @@ export function MapLandmark({ destination }: { destination: Destination }) {
     >
       <ellipse className="vmap-halo" cx={gx} cy={gy + 4} rx={58} ry={26} />
       {draw({ x, y })}
-      <LandmarkSign px={sx} py={sy} glyph={look(kind).glyph} label={label} />
+      <NameSign px={sx} py={sy} glyph={look(kind).glyph} label={label} />
     </a>
   )
 }

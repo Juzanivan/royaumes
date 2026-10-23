@@ -1,9 +1,11 @@
+import { ArchedDoor } from '../details/arched-door'
 import { Crane } from '../details/crane'
 import { FacadeLines } from '../details/facade-lines'
 import { STONE_BLOCK_HEIGHT, StoneBlock } from '../details/stone-block'
 import type { Pt } from '../geometry/iso'
 import { Block } from '../shapes/block'
 import { Flag } from '../shapes/flag'
+import { OnFace } from '../shapes/on-face'
 import { PyramidRoof } from '../shapes/pyramid-roof'
 import { buildingSize } from '../tiers'
 
@@ -31,6 +33,8 @@ export function Quarry({ x, y, tier }: { x: number; y: number; tier: number }) {
   const front = x + half * 0.7
   return (
     <g>
+      {/* La grue est derrière la maison, sur sa droite : elle est dessinée en premier. */}
+      {tier >= 3 && <Crane x={x + half + 0.5} y={y - half} tipX={x + half + 0.3} tipY={y + 0.4} />}
       <Block x0={x - half} y0={y - half} x1={front} y1={y + half * 0.7} h={wall} shade={WALL} />
       <FacadeLines
         x0={x - half}
@@ -40,6 +44,9 @@ export function Quarry({ x, y, tier }: { x: number; y: number; tier: number }) {
         fractions={[0.33, 0.66]}
         color="#8a847a"
       />
+      <OnFace face="left" x={x - half * 0.15} y={y + half * 0.7}>
+        <ArchedDoor w={9} h={Math.min(16, wall - 4)} color="#6b4a2f" frame="#4a3626" />
+      </OnFace>
       <PyramidRoof
         x0={x - half - 0.08}
         y0={y - half - 0.08}
@@ -57,7 +64,6 @@ export function Quarry({ x, y, tier }: { x: number; y: number; tier: number }) {
           z={i === 4 ? STONE_BLOCK_HEIGHT : 0}
         />
       ))}
-      {tier >= 3 && <Crane x={x + half + 0.5} y={y - half} tipX={x + half + 0.3} tipY={y + 0.4} />}
       {tier === 4 && (
         <Flag x={x - half * 0.15} y={y - half * 0.15} z={wall + rise} color="#e0b23a" />
       )}

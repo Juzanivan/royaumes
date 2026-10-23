@@ -53,7 +53,7 @@ function Moon() {
 
 /**
  * Astre du ciel : le soleil le jour (thème clair), la lune la nuit (thème sombre). Un clic, ou
- * Entrée au clavier, le fait se coucher derrière les montagnes ; le thème change alors, et
+ * Entrée au clavier, le fait se coucher derrière les montagnes et le terrain ; le thème change alors, et
  * l'astre suivant se lève. Sans animation (réglage du système), le thème change aussitôt.
  */
 export function Celestial() {

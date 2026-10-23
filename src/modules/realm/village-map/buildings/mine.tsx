@@ -40,13 +40,14 @@ export function Mine({ x, y, tier }: { x: number; y: number; tier: number }) {
         stroke="#5c534b"
         strokeWidth={1.6}
       />
-      <MineCart px={cx + 26} py={cy + 12} />
       {tier >= 2 && (
         <g>
           <Lantern px={cx - 24} py={cy + 4} />
           <Lantern px={cx + 24} py={cy + 4} />
         </g>
       )}
+      {/* Le wagonnet est devant la lanterne de droite : il est dessiné après elle. */}
+      <MineCart px={cx + 26} py={cy + 12} />
       {tier >= 3 && (
         <g>
           <Sparkle px={cx - 28} py={cy - 29} />

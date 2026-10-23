@@ -44,20 +44,22 @@ export function Sawmill({ x, y, tier }: { x: number; y: number; tier: number }) 
       )}
       <Block x0={x0} y0={y0} x1={x1} y1={y1} h={wall} shade={WALL} />
       <FacadeLines x0={x0} x1={x1} y={y1} h={wall} fractions={[0.25, 0.5, 0.75]} color="#8a5530" />
+      {/* La cheminée part du haut des murs : le toit, dessiné après, en masque la base. */}
       {tier >= 2 && (
         <Block
           x0={x + 0.05}
           y0={y0 + 0.1}
           x1={x + 0.25}
           y1={y0 + 0.3}
-          h={wall + rise + 4}
+          h={rise + 14}
+          z0={wall}
           shade={CHIMNEY}
         />
       )}
       <GableRoof x0={x0} y0={y0} x1={x1} y1={y1} z={wall} rise={rise} shade={roof} />
       <SawBlade x={x - half * 0.3} y={y1} z={wall * 0.5} r={6 + tier * 1.5} />
       {tier >= 2 && <LogPile x={x1 + 0.35} y={y} />}
-      {tier >= 2 && <Smoke x={x + 0.15} y={y0 + 0.2} z={wall + rise + 6} />}
+      {tier >= 2 && <Smoke x={x + 0.15} y={y0 + 0.2} z={wall + rise + 16} />}
       {tier === 4 && <Flag x={x - half * 0.05} y={y} z={wall + rise} color="#e0b23a" />}
     </g>
   )
