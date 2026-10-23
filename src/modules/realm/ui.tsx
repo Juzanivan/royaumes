@@ -11,7 +11,9 @@ import {
   type VillageView,
   villageChannel,
 } from './contracts'
-import { VillageMap } from './village-map'
+import { type MapTraveller, VillageMap } from './village-map'
+
+export type { MapTraveller } from './village-map'
 
 /** Client HTTP typé, déduit de la sous-application Hono du module. */
 const client = hc<RealmApi>('/api/realm')
@@ -39,7 +41,16 @@ const STATUS_LABELS = {
  * Écran du Village : fondation du village, puis carte du village, mise à jour en temps réel.
  * La carte est aussi le point de départ du jeu : ses bâtiments mènent aux autres lieux.
  */
-export function VillageScreen({ userId, userName }: { userId: string; userName: string }) {
+export function VillageScreen({
+  userId,
+  userName,
+  travellers,
+}: {
+  userId: string
+  userName: string
+  /** Caravanes en route, fournies par la page : le Village ne dépend d'aucun autre module. */
+  travellers?: MapTraveller[]
+}) {
   // undefined : chargement en cours ; null : aucun village fondé.
   const [view, setView] = useState<VillageView | null | undefined>(undefined)
   const [now, setNow] = useState(() => Date.now())
@@ -131,6 +142,7 @@ export function VillageScreen({ userId, userName }: { userId: string; userName: 
         userName={userName}
         onUpgrade={upgrade}
         tools={statusLabel}
+        travellers={travellers}
       />
     </>
   )

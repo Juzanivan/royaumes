@@ -26,6 +26,7 @@ import { Palisade } from './scenery/palisade'
 import { Paths } from './scenery/paths'
 import { Pond } from './scenery/pond'
 import { Sky } from './scenery/sky'
+import { type MapTraveller, Travellers } from './scenery/travellers'
 import { Villagers } from './scenery/villagers'
 
 /** Zone visible du dessin, dans le repère du SVG. */
@@ -48,6 +49,7 @@ export function VillageMap({
   userName,
   onUpgrade,
   tools,
+  travellers = [],
 }: {
   view: VillageView
   stock: Stock
@@ -57,6 +59,8 @@ export function VillageMap({
   onUpgrade: (building: Building) => void
   /** Réglages de l'écran affichés en haut à droite de la carte (présentation, état du temps réel). */
   tools?: ReactNode
+  /** Caravanes en route, dont les chariots roulent entre le relais et la porte du village. */
+  travellers?: MapTraveller[]
 }) {
   const container = useRef<HTMLDivElement>(null)
   const viewport = useRef<HTMLDivElement>(null)
@@ -165,6 +169,7 @@ export function VillageMap({
           <Paths />
           <Pond />
           {items.map((item) => item.node)}
+          <Travellers travellers={travellers} />
           <Villagers />
           {/* La palissade borde l'avant du terrain : elle passe devant tout ce qu'elle longe. */}
           <Palisade />

@@ -1,13 +1,14 @@
 import { headers } from 'next/headers'
 import { currentUser } from '@/bootstrap/server'
-import { VillageScreen } from '@/modules/realm/ui'
+import { VillageWithCaravans } from './village-with-caravans'
 
 /**
  * Page du Village. Elle transmet au composant l'identifiant du joueur connecté, qui sert à
  * nommer le canal temps réel de son village, et son nom, affiché dans le menu du château.
- * La mise en page du groupe (jeu) garantit qu'un joueur est connecté.
+ * Les chariots des caravanes en route roulent sur sa carte. La mise en page du groupe (jeu)
+ * garantit qu'un joueur est connecté.
  */
 export default async function VillagePage() {
   const user = await currentUser(await headers())
-  return <VillageScreen userId={user?.id ?? ''} userName={user?.name ?? ''} />
+  return <VillageWithCaravans userId={user?.id ?? ''} userName={user?.name ?? ''} />
 }

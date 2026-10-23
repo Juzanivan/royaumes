@@ -6,7 +6,7 @@ import { PathSegment } from './path-segment'
 export function Paths() {
   const [cx, cy] = CASTLE
   const { sawmill, quarry, mine } = SLOTS
-  const { dungeon, ranking, market, tavern } = LANDMARKS
+  const { dungeon, ranking, market, tavern, caravan } = LANDMARKS
   return (
     <g>
       <PathSegment x0={cx} y0={cy} x1={cx} y1={SIZE} />
@@ -19,6 +19,7 @@ export function Paths() {
       <PathSegment x0={ranking[0]} y0={ranking[1]} x1={cx} y1={ranking[1]} />
       <PathSegment x0={market[0]} y0={cy} x1={market[0]} y1={market[1]} />
       <PathSegment x0={tavern[0]} y0={tavern[1]} x1={cx} y1={tavern[1]} />
+      <PathSegment x0={caravan[0]} y0={caravan[1]} x1={tavern[0]} y1={caravan[1]} />
     </g>
   )
 }

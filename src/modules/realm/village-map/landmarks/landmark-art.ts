@@ -3,6 +3,7 @@ import type { DestinationKind } from '@/ui/destinations'
 import { Dungeon } from './dungeon'
 import { Market } from './market'
 import { Ranking } from './ranking'
+import { Relay } from './relay'
 import { Tavern } from './tavern'
 
 /**
@@ -20,4 +21,5 @@ export const LANDMARK_ART: Record<
   ranking: { draw: Ranking, signHeight: 74 },
   market: { draw: Market, signHeight: 52 },
   tavern: { draw: Tavern, signHeight: 92 },
+  caravan: { draw: Relay, signHeight: 80 },
 }

@@ -7,6 +7,7 @@ export const DESTINATIONS = [
   { href: '/ranking', kind: 'ranking', label: 'Classement' },
   { href: '/market', kind: 'market', label: 'Marché' },
   { href: '/tavern', kind: 'tavern', label: 'Taverne' },
+  { href: '/caravan', kind: 'caravan', label: 'Relais des caravanes' },
 ] as const
 
 export type Destination = (typeof DESTINATIONS)[number]

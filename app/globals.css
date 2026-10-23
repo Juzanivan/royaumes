@@ -380,3 +380,119 @@ main:has(.place-sheet) .topbar { margin-bottom: 12px; padding: 8px 10px 8px 16px
 }
 .place-sheet .panel { background: color-mix(in srgb, var(--panel) 92%, transparent); box-shadow: 0 2px 8px rgb(0 0 0 / 0.12); }
 @media (max-width: 600px) { .place-sheet { padding: 14px; border-radius: 14px; } }
+
+/* Caravane : les chariots sur la carte du village. Leur position est recalculée deux fois par
+   seconde, et la transition rend le mouvement continu. */
+.vmap-traveller { cursor: pointer; outline: none; }
+.vmap-traveller-move { transition: transform 0.5s linear; }
+.vmap-traveller:hover .vmap-halo, .vmap-traveller:focus-visible .vmap-halo { fill: rgb(255 236 170 / 0.45); stroke: #ffe08a; }
+.vmap-traveller .vmap-wagon-horse { animation: vmap-trot 0.5s ease-in-out infinite alternate; }
+@keyframes vmap-trot { from { transform: translateY(0); } to { transform: translateY(-1px); } }
+
+/* Caravane : le relais, son formulaire d'envoi et la liste des caravanes. */
+.caravan-form { max-width: none; gap: 14px; }
+.caravan-form select { font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--muted); background: transparent; color: inherit; }
+.caravan-form fieldset { border: 1px solid color-mix(in srgb, var(--muted) 35%, transparent); border-radius: 10px; padding: 10px 12px 12px; margin: 0; }
+.caravan-form legend { padding: 0 6px; font-weight: 600; }
+.caravan-cargo { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.caravan-amount { display: inline-flex; gap: 8px; align-items: center; }
+.caravan-amount input { width: 90px; }
+.caravan-load { position: relative; flex-basis: 100%; height: 26px; border-radius: 8px; background: color-mix(in srgb, var(--muted) 18%, transparent); overflow: hidden; }
+.caravan-meter { position: absolute; inset: 0 auto 0 0; background: color-mix(in srgb, var(--ok) 55%, transparent); transition: width 0.25s ease; }
+.caravan-meter.is-over { background: color-mix(in srgb, var(--warn) 65%, transparent); }
+.caravan-load span { position: relative; display: block; text-align: center; line-height: 26px; font-size: 0.9rem; }
+.caravan-escorts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.caravan-escort { display: grid; gap: 2px; justify-items: center; text-align: center; padding: 10px; border-radius: 10px; border: 2px solid transparent; background: color-mix(in srgb, var(--muted) 10%, transparent); cursor: pointer; transition: border-color 0.15s, transform 0.15s; }
+.caravan-escort input { position: absolute; opacity: 0; pointer-events: none; }
+.caravan-escort:hover { transform: translateY(-2px); }
+.caravan-escort.is-chosen { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.caravan-escort:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.caravan-escort-glyph { font-size: 1.8rem; }
+.caravan-sent .row { margin-top: 10px; }
+a.button.is-secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+.caravans { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.caravans li { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--muted) 8%, transparent); }
+.caravans li[data-status='ambushed'] { box-shadow: inset 3px 0 0 var(--warn); }
+.caravans li[data-status='delivered'] { box-shadow: inset 3px 0 0 var(--ok); }
+.caravans li[data-status='travelling'] { box-shadow: inset 3px 0 0 var(--accent); }
+.caravans a { color: var(--accent); font-weight: 600; }
+
+/* Caravane : la vue de profil, en plein écran, sous la barre de retour au village. */
+main:has(.journey) { padding-top: 16px; }
+main:has(.journey) .topbar { position: relative; z-index: 2; margin-bottom: 0; padding: 8px 10px 8px 16px; border: 0; border-radius: 999px; background: color-mix(in srgb, var(--panel) 82%, transparent); backdrop-filter: blur(6px); box-shadow: 0 6px 18px rgb(0 0 0 / 0.25); }
+.journey { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
+.journey::before { content: ''; position: absolute; inset: 0; background: linear-gradient(var(--sky-top) 50%, #3d7a37 50%); filter: var(--place-dim); }
+.journey-lantern { fill: #ffd27a; filter: var(--place-light); }
+.journey-lantern-glow { fill: url(#journey-glow); opacity: calc(var(--stars) * 0.9); transition: opacity 0.9s ease; }
+.journey-scene { position: relative; display: block; width: 100%; height: 100%; filter: var(--place-dim); transition: filter 0.9s ease; }
+/* En portrait, la scène est réduite autour du chariot plutôt que rognée : elle déborde
+   des deux côtés, et le ciel remplit le haut de l'écran. */
+@media (orientation: portrait) {
+  .journey-scene { position: absolute; left: 50%; bottom: 130px; width: max(100%, 210vw); height: auto; transform: translateX(-53%); }
+}
+.journey-sky-top { stop-color: var(--sky-top); }
+.journey-sky-bottom { stop-color: var(--sky-bottom); }
+.journey-stars { fill: #fff7d6; opacity: var(--stars); }
+.journey-clouds { fill: var(--cloud); animation: place-drift 80s linear infinite alternate; }
+.journey-hills-far { fill: #7fa86a; }
+.journey-hills-near { fill: #5f9450; }
+.journey-grass { fill: #4f8a3f; }
+.journey-road { fill: #c8a771; }
+.journey-pebble { fill: #a88a5a; }
+.journey-rut { stroke: #b08f5c; stroke-width: 6; fill: none; stroke-dasharray: 60 40; }
+.journey-blade { stroke: #2f6a2c; stroke-width: 4; fill: none; stroke-linecap: round; }
+.journey-canvas { fill: #f3ead7; stroke: #cbbd9f; stroke-width: 4; }
+
+/* Défilement du décor : chaque plan glisse d'une largeur de motif par cycle. */
+.journey-layer { animation: journey-scroll linear infinite; }
+.journey-scene.is-reversed .journey-layer { animation-direction: reverse; }
+.journey-scene.is-stopped .journey-layer { animation-play-state: paused; }
+@keyframes journey-scroll { from { transform: translateX(0); } to { transform: translateX(-1600px); } }
+
+/* La caravane : roues qui tournent, chevaux qui trottent, demi-tour après une attaque. */
+.journey-caravan { transform-box: view-box; transform-origin: 800px 0; transition: transform 0.9s ease-in-out; }
+.journey-caravan.is-turned { transform: scaleX(-1); }
+.journey-wheel { transform-box: fill-box; transform-origin: center; animation: journey-spin 1.1s linear infinite; }
+.journey-horse, .journey-walker { animation: journey-bob 0.45s ease-in-out infinite alternate; }
+.journey-leg { transform-box: fill-box; transform-origin: 50% 0; animation: journey-stride 0.45s ease-in-out infinite alternate; }
+.journey-leg.is-odd { animation-direction: alternate-reverse; }
+.journey-wagon { animation: journey-bob 0.6s ease-in-out infinite alternate; }
+.journey-scene.is-stopped :is(.journey-wheel, .journey-horse, .journey-walker, .journey-leg, .journey-wagon) { animation-play-state: paused; }
+.journey-crates.is-lost { animation: journey-loot 1.2s ease-in forwards; }
+@keyframes journey-spin { to { transform: rotate(360deg); } }
+@keyframes journey-bob { from { transform: translateY(0); } to { transform: translateY(-5px); } }
+@keyframes journey-stride { from { transform: rotate(-14deg); } to { transform: rotate(14deg); } }
+@keyframes journey-loot { to { transform: translate(160px, -220px) rotate(25deg); opacity: 0; } }
+
+/* Les brigands : cachés hors champ, ils surgissent, se battent, puis s'enfuient avec le butin. */
+.journey-brigands { transform: translateX(900px); transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.3, 1); }
+.journey-brigands.is-ambush, .journey-brigands.is-fight { transform: translateX(0); }
+.journey-brigands.is-fleeing { transform: translateX(1100px); transition-duration: 1.6s; transition-timing-function: ease-in; }
+.journey-brigands :is(.journey-walker, .journey-leg) { animation-play-state: running !important; }
+.journey-clash { fill: #fff3a8; stroke: #ffb347; stroke-width: 3; transform-box: fill-box; transform-origin: center; animation: journey-clash 0.6s ease-out infinite; opacity: 0; }
+@keyframes journey-clash { 0% { transform: scale(0.2); opacity: 0; } 30% { opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
+
+/* La porte du village de destination glisse au bout de la route à l'arrivée. */
+.journey-gate { transform: translateX(900px); transition: transform 2.2s ease-out; }
+.journey-gate.is-shown { transform: translateX(0); }
+.journey-flag { transform-box: fill-box; transform-origin: 0 50%; animation: ranking-wave 1.5s ease-in-out infinite alternate; }
+
+/* Barre de progression du trajet. */
+.journey-progress { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); width: min(760px, calc(100% - 32px)); padding: 12px 18px 10px; border-radius: 16px; background: color-mix(in srgb, var(--panel) 86%, transparent); backdrop-filter: blur(6px); box-shadow: 0 10px 30px rgb(0 0 0 / 0.3); }
+.journey-ends { display: flex; justify-content: space-between; font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; }
+.journey-track { position: relative; height: 12px; border-radius: 999px; background: color-mix(in srgb, var(--muted) 30%, transparent); }
+.journey-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), #e0b23a); transition: width 0.25s linear; }
+.journey-marker { position: absolute; top: 50%; font-size: 1.7rem; transform: translate(-50%, -62%) scaleX(-1); transition: left 0.25s linear; }
+.journey-marker.is-turned { transform: translate(-50%, -62%); }
+.journey-ambush { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 1.1rem; filter: drop-shadow(0 0 4px rgb(255 80 60 / 0.8)); }
+.journey-caption { margin: 10px 0 0; text-align: center; min-height: 1.4em; }
+.journey[data-phase='ambush'] .journey-caption, .journey[data-phase='fight'] .journey-caption, .journey[data-phase='fleeing'] .journey-caption { color: var(--warn); font-weight: 700; }
+.journey[data-phase='delivered'] .journey-caption { color: var(--ok); font-weight: 700; }
+
+/* Relais : chevaux qui hochent la tête. */
+.relay-horse { animation: relay-nod 3.2s ease-in-out infinite alternate; }
+@keyframes relay-nod { from { transform: rotate(-3deg); } to { transform: rotate(4deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .journey *, .vmap-traveller * { animation: none !important; }
+}
