@@ -1,1 +1,2 @@
-export { PlaceBackdrop, type PlaceKind, placeFor } from './place'
+export { ExitArea } from './exit-area'
+export { PlaceBackdrop, type PlaceKind, placeFor, type SceneKind } from './place'

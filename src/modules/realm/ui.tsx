@@ -3,6 +3,7 @@ import { hc } from 'hono/client'
 import { useCallback, useEffect, useState } from 'react'
 import { useChannel } from '@/platform/realtime/use-channel'
 import { Entity } from '@/ui/entity'
+import { PlaceBackdrop } from '@/ui/places'
 import type { RealmApi } from './api'
 import {
   type Building,
@@ -103,30 +104,36 @@ export function VillageScreen({
   // Chargement en cours.
   if (view === undefined) return <h1 className="sr-only">Royaumes</h1>
 
-  // Aucun village : formulaire de fondation.
+  // Aucun village : formulaire de fondation, sur le décor de l'écran titre.
   if (view === null) {
     return (
-      <>
-        <div className="row" style={{ justifyContent: 'space-between' }}>
-          <h1>
-            <Entity kind="village" /> Royaumes
-          </h1>
-          {statusLabel}
-        </div>
-        <div className="panel">
+      <div className="title-screen">
+        <PlaceBackdrop kind="title" />
+        <header className="title-logo">
+          <span className="title-crown" aria-hidden="true">
+            👑
+          </span>
+          <h1>Royaumes</h1>
+          <p>Une terre vous attend, seigneur. Donnez un nom à votre village.</p>
+        </header>
+        <div className="title-card">
+          <h2>
+            <Entity kind="village" /> Fonder votre village
+          </h2>
           <form
             onSubmit={(e) => {
               e.preventDefault()
               found(String(new FormData(e.currentTarget).get('name')))
             }}
           >
-            <label htmlFor="name">Nommez votre village</label>
+            <label htmlFor="name">Nom du village</label>
             <input id="name" name="name" required minLength={2} maxLength={30} />
             <button type="submit">Fonder</button>
             {error && <p className="error">{error}</p>}
           </form>
         </div>
-      </>
+        <footer className="title-footer">{statusLabel}</footer>
+      </div>
     )
   }
 

@@ -154,6 +154,68 @@ function describeEffect(effect: Effect, nameOf: (id: string) => string) {
     : `${nameOf(effect.source)} rend ${effect.amount} points de vie à ${nameOf(effect.target)}`
 }
 
+/**
+ * Carte d'un combattant dans l'ATH de l'expédition : son portrait, son nom, sa barre de vie
+ * et ses états (hôte, compagnon, prêt, à son tour). Un combattant à terre est grisé.
+ */
+function FighterCard({
+  kind,
+  name,
+  hp,
+  maxHp,
+  enemy = false,
+  active = false,
+  tags = [],
+}: {
+  kind: string
+  name: string
+  hp: number
+  maxHp: number
+  enemy?: boolean
+  active?: boolean
+  tags?: string[]
+}) {
+  const ratio = Math.max(0, Math.min(1, hp / maxHp))
+  const level = ratio > 0.5 ? 'high' : ratio > 0.25 ? 'mid' : 'low'
+  return (
+    <div
+      className={['fighter-card', enemy && 'is-enemy', active && 'is-active']
+        .filter(Boolean)
+        .join(' ')}
+      data-down={hp <= 0}
+    >
+      <span className="fighter-portrait">
+        <Entity kind={kind} />
+      </span>
+      <div className="fighter-body">
+        <strong className="fighter-name">{name}</strong>
+        <div className="hp-bar" data-level={level}>
+          <div className="hp-fill" style={{ width: `${ratio * 100}%` }} />
+          <span className="hp-text">
+            {hp}/{maxHp} PV
+          </span>
+        </div>
+        {tags.length > 0 && (
+          <div className="fighter-tags">
+            {tags.map((tag) => (
+              <span key={tag}>{tag}</span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** Compte à rebours d'une manche ou d'un tour, présenté comme un sablier qui se vide. */
+function Countdown({ seconds, title }: { seconds: number; title?: string }) {
+  return (
+    <span className="countdown" title={title} data-urgent={seconds <= 5 || undefined}>
+      <span aria-hidden="true">⏳</span> {seconds} s
+    </span>
+  )
+}
+
 /** Écran d'une expédition : salon, exploration, combat et fin de l'expédition. */
 export function DungeonGame({ gameId, userId }: { gameId: string; userId: string }) {
   // undefined : chargement en cours ; null : expédition introuvable.
@@ -258,18 +320,20 @@ export function DungeonGame({ gameId, userId }: { gameId: string; userId: string
       {/* Héros de l'expédition. */}
       <section className="panel heroes" aria-label="Héros">
         {view.heroes.map((hero) => (
-          <div key={hero.id} className="fighter" data-down={hero.hp <= 0}>
-            <span>
-              <Entity kind={hero.companion ? 'companion' : 'hero'} /> {hero.name}
-              {hero.id === view.hostId && <span className="muted"> (hôte)</span>}
-              {hero.companion && <span className="muted"> (piloté par l'ordinateur)</span>}
-            </span>
-            <span className="muted">
-              {hero.hp}/{hero.maxHp} PV
-            </span>
-            {view.phase === 'combat' && hero.ready && <span className="ok">prêt</span>}
-            {view.turnHeroId === hero.id && <span className="ok">à son tour</span>}
-          </div>
+          <FighterCard
+            key={hero.id}
+            kind={hero.companion ? 'companion' : 'hero'}
+            name={hero.name}
+            hp={hero.hp}
+            maxHp={hero.maxHp}
+            active={view.turnHeroId === hero.id || hero.id === userId}
+            tags={[
+              ...(hero.id === view.hostId ? ['hôte'] : []),
+              ...(hero.companion ? ["piloté par l'ordinateur"] : []),
+              ...(view.phase === 'combat' && hero.ready ? ['prêt'] : []),
+              ...(view.turnHeroId === hero.id ? ['à son tour'] : []),
+            ]}
+          />
         ))}
       </section>
 
@@ -306,9 +370,7 @@ export function DungeonGame({ gameId, userId }: { gameId: string; userId: string
           <div className="row" style={{ justifyContent: 'space-between' }}>
             <h2>Exploration</h2>
             {remaining !== null && (
-              <span className="countdown" title="La porte s'ouvrira d'elle-même">
-                {remaining} s
-              </span>
+              <Countdown seconds={remaining} title="La porte s'ouvrira d'elle-même" />
             )}
           </div>
           <p>
@@ -319,7 +381,7 @@ export function DungeonGame({ gameId, userId }: { gameId: string; userId: string
             <Entity kind="gold" /> {view.loot}
           </p>
           {view.turnHeroId === userId ? (
-            <button type="button" onClick={openDoor}>
+            <button type="button" className="door-button" onClick={openDoor}>
               <Entity kind="door" /> Ouvrir la porte suivante
             </button>
           ) : (
@@ -335,18 +397,18 @@ export function DungeonGame({ gameId, userId }: { gameId: string; userId: string
             <h2>
               Combat - salle {view.room + 1}, manche {view.round}
             </h2>
-            {remaining !== null && <span className="countdown">{remaining} s</span>}
+            {remaining !== null && <Countdown seconds={remaining} />}
           </div>
           <div className="monsters">
             {view.monsters.map((monster) => (
-              <div key={monster.id} className="fighter" data-down={monster.hp <= 0}>
-                <span>
-                  <Entity kind={monster.kind} /> {monsterName(monster, view.monsters)}
-                </span>
-                <span className="muted">
-                  {monster.hp}/{monster.maxHp} PV
-                </span>
-              </div>
+              <FighterCard
+                key={monster.id}
+                kind={monster.kind}
+                name={monsterName(monster, view.monsters)}
+                hp={monster.hp}
+                maxHp={monster.maxHp}
+                enemy
+              />
             ))}
           </div>
           {me && me.hp > 0 && !me.action && (
@@ -355,21 +417,27 @@ export function DungeonGame({ gameId, userId }: { gameId: string; userId: string
                 <button
                   key={monster.id}
                   type="button"
+                  className="skill is-attack"
                   onClick={() => act({ type: 'attack', target: monster.id })}
                 >
-                  Attaquer {monsterName(monster, view.monsters)}
+                  <span aria-hidden="true">⚔️</span> Attaquer {monsterName(monster, view.monsters)}
                 </button>
               ))}
-              <button type="button" onClick={() => act({ type: 'defend' })}>
-                Se défendre
+              <button
+                type="button"
+                className="skill is-defend"
+                onClick={() => act({ type: 'defend' })}
+              >
+                <span aria-hidden="true">🛡️</span> Se défendre
               </button>
               {standingHeroes.map((hero) => (
                 <button
                   key={hero.id}
                   type="button"
+                  className="skill is-heal"
                   onClick={() => act({ type: 'heal', target: hero.id })}
                 >
-                  Soigner {hero.name}
+                  <span aria-hidden="true">✚</span> Soigner {hero.name}
                 </button>
               ))}
             </div>
@@ -384,8 +452,8 @@ export function DungeonGame({ gameId, userId }: { gameId: string; userId: string
 
       {/* Fin de l'expédition. */}
       {(view.phase === 'won' || view.phase === 'lost') && (
-        <div className="panel">
-          <h2>{view.phase === 'won' ? 'Victoire !' : 'Défaite...'}</h2>
+        <div className="panel outcome" data-outcome={view.phase}>
+          <h2>{view.phase === 'won' ? '🏆 Victoire !' : '💀 Défaite...'}</h2>
           <p>
             Butin de l'expédition : <Entity kind="gold" /> {view.loot}
           </p>
@@ -395,7 +463,7 @@ export function DungeonGame({ gameId, userId }: { gameId: string; userId: string
 
       {/* Résultat de la dernière manche, connu de tous une fois la manche résolue. */}
       {view.lastRound && (
-        <section className="panel" aria-label="Dernière manche">
+        <section className="panel combat-log" aria-label="Dernière manche">
           <h2>Manche {view.lastRound.round}</h2>
           <ul className="log">
             {Object.entries(view.lastRound.actions).map(([heroId, action]) => (

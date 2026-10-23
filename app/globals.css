@@ -24,7 +24,7 @@
     --scene-filter: none;
     color-scheme: light;
     transition: --sky-top 0.9s ease, --sky-bottom 0.9s ease, --stars 0.9s ease;
-    font-family: system-ui, sans-serif;
+    font-family: var(--font-body, Georgia), Georgia, serif;
     color: var(--ink);
     background: var(--bg);
 }
@@ -337,9 +337,10 @@ body:has(.vmap) { overflow-x: hidden; }
   :root:not([data-theme='light']) { --place-dim: brightness(0.62); --place-dim-indoor: brightness(0.82); --place-light: brightness(1.3); --glow: 1; --window: #ffc85a; }
 }
 body:has(.place-backdrop) { background: transparent; }
-.place-backdrop { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: #1d1915; }
+.place-backdrop { position: fixed; inset: 0; z-index: 0; overflow: hidden; background: #1d1915; }
+.place-backdrop-scene { position: absolute; inset: 0; }
 .place-scene { display: block; width: 100%; height: 100%; filter: var(--place-dim); transition: filter 0.9s ease; }
-.place-backdrop:is([data-place='tavern'], [data-place='dungeon'], [data-place='ranking'], [data-place='account']) .place-scene { filter: var(--place-dim-indoor); }
+.place-backdrop-scene:is([data-place='tavern'], [data-place='dungeon'], [data-place='ranking'], [data-place='account']) .place-scene { filter: var(--place-dim-indoor); }
 .place-sky-top { stop-color: var(--sky-top); }
 .place-sky-bottom { stop-color: var(--sky-bottom); }
 .place-stars { fill: #fff7d6; opacity: var(--stars); }
@@ -422,6 +423,7 @@ a.button.is-secondary { background: transparent; color: var(--accent); border: 1
 
 /* Caravane : la vue de profil, en plein écran, sous la barre de retour au village. */
 main:has(.journey) { padding-top: 16px; }
+.journey-exit { position: absolute; inset: 0; }
 main:has(.journey) .topbar { position: relative; z-index: 2; margin-bottom: 0; padding: 8px 10px 8px 16px; border: 0; border-radius: 999px; background: color-mix(in srgb, var(--panel) 82%, transparent); backdrop-filter: blur(6px); box-shadow: 0 6px 18px rgb(0 0 0 / 0.25); }
 .journey { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
 .journey::before { content: ''; position: absolute; inset: 0; background: linear-gradient(var(--sky-top) 50%, #3d7a37 50%); filter: var(--place-dim); }

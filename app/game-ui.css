@@ -1,0 +1,442 @@
+/*
+ * Interface de jeu : l'habillage commun de tous les écrans, chargé après globals.css.
+ * Les écrans posent leur contenu sur des parchemins encadrés de bois et d'or, leurs titres
+ * sur des bannières, et leurs actions sur des boutons dorés qui s'enfoncent au clic.
+ * Le jour, le parchemin est clair ; la nuit, il devient un cuir sombre aux reliefs dorés.
+ */
+:root {
+  --font-heading: var(--font-title, 'Times New Roman'), 'Times New Roman', serif;
+  --sheet-light: #fbf2d8;
+  --sheet-mid: #f1e0b6;
+  --sheet-edge: #dcc18b;
+  --sheet-ink: #3b2a1a;
+  --frame-gold: #c9971f;
+  --frame-wood: #5e3b20;
+  --frame-wood-dark: #3a2312;
+  --btn-top: #f7dc85;
+  --btn-mid: #d9a52a;
+  --btn-bottom: #a87612;
+  --btn-ink: #3a2410;
+  --btn-edge: #5e3b20;
+  --field-bg: #fffaf0;
+  --field-edge: #b89b6a;
+  --title-gold: #f4d27a;
+}
+:root[data-theme='dark'] {
+  --sheet-light: #3a3029;
+  --sheet-mid: #2e261f;
+  --sheet-edge: #1f1914;
+  --sheet-ink: #f1e6d2;
+  --frame-gold: #b8891c;
+  --field-bg: #241d18;
+  --field-edge: #6b5a44;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --sheet-light: #3a3029;
+    --sheet-mid: #2e261f;
+    --sheet-edge: #1f1914;
+    --sheet-ink: #f1e6d2;
+    --frame-gold: #b8891c;
+    --field-bg: #241d18;
+    --field-edge: #6b5a44;
+  }
+}
+
+body { font-variant-numeric: lining-nums; }
+.ranking, .hp-text, .countdown, .vmap-pill, .caravan-load { font-variant-numeric: lining-nums tabular-nums; }
+
+/* --- Titres ------------------------------------------------------------------------------ */
+h1, h2, h3, legend { font-family: var(--font-heading); letter-spacing: 0.02em; }
+h2 { font-size: 1.2rem; margin: 0 0 10px; display: flex; align-items: center; gap: 10px; }
+/* Filet doré qui prolonge les titres de section. */
+.panel h2::after, .place-sheet h2::after { content: ''; flex: 1; height: 2px; background: linear-gradient(90deg, var(--frame-gold), transparent); opacity: 0.7; }
+
+/* Titre d'un lieu : une bannière de tissu rouge aux bords en queue d'aronde, lettres d'or. */
+.place-sheet > h1, .place-sheet > .row:first-child > h1, .title-banner {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 22px 6px;
+  padding: 8px 26px 10px;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--title-gold);
+  text-shadow: 0 2px 0 #3a1010, 0 0 12px rgb(255 200 90 / 0.35);
+  background: linear-gradient(#a3242f, #7b1a24);
+  border-top: 2px solid #d4a017;
+  border-bottom: 2px solid #d4a017;
+  box-shadow: 0 6px 14px rgb(0 0 0 / 0.3);
+}
+.place-sheet > h1::before, .place-sheet > h1::after,
+.place-sheet > .row:first-child > h1::before, .place-sheet > .row:first-child > h1::after,
+.title-banner::before, .title-banner::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: -8px;
+  width: 22px;
+  background: #5e121a;
+  z-index: -1;
+}
+.place-sheet > h1::before, .place-sheet > .row:first-child > h1::before, .title-banner::before { left: -18px; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 35% 50%); }
+.place-sheet > h1::after, .place-sheet > .row:first-child > h1::after, .title-banner::after { right: -18px; clip-path: polygon(0 0, 100% 0, 65% 50%, 100% 100%, 0 100%); }
+.place-sheet > h1 .entity, .place-sheet > .row:first-child > h1 .entity { filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.4)); }
+
+/* --- Parchemins -------------------------------------------------------------------------- */
+.place-sheet, .title-card {
+  color: var(--sheet-ink);
+  background:
+    radial-gradient(ellipse at 50% 40%, var(--sheet-light) 0%, var(--sheet-mid) 65%, var(--sheet-edge) 100%);
+  border-radius: 14px;
+  backdrop-filter: none;
+  box-shadow:
+    0 0 0 3px var(--frame-gold),
+    0 0 0 9px var(--frame-wood),
+    0 0 0 11px var(--frame-wood-dark),
+    0 22px 50px rgb(0 0 0 / 0.5);
+  position: relative;
+}
+/* Rivets dorés aux quatre coins du cadre. */
+.place-sheet::before, .title-card::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 6px 6px, #f6d77c 0 3px, #8a5a14 3.5px, transparent 4.5px),
+    radial-gradient(circle at calc(100% - 6px) 6px, #f6d77c 0 3px, #8a5a14 3.5px, transparent 4.5px),
+    radial-gradient(circle at 6px calc(100% - 6px), #f6d77c 0 3px, #8a5a14 3.5px, transparent 4.5px),
+    radial-gradient(circle at calc(100% - 6px) calc(100% - 6px), #f6d77c 0 3px, #8a5a14 3.5px, transparent 4.5px);
+}
+/* Encarts : une feuille plus claire, au bord légèrement brûlé, posée sur le parchemin. */
+.place-sheet .panel {
+  color: var(--sheet-ink);
+  background: color-mix(in srgb, var(--field-bg) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--frame-gold) 45%, transparent);
+  border-radius: 10px;
+  box-shadow: inset 0 0 24px color-mix(in srgb, var(--sheet-edge) 55%, transparent), 0 2px 6px rgb(0 0 0 / 0.12);
+}
+.place-sheet .muted { color: color-mix(in srgb, var(--sheet-ink) 62%, transparent); }
+
+/* --- Boutons ----------------------------------------------------------------------------- */
+button, a.button {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--btn-ink);
+  background: linear-gradient(var(--btn-top), var(--btn-mid) 55%, var(--btn-bottom));
+  border: 2px solid var(--btn-edge);
+  border-radius: 10px;
+  padding: 9px 16px;
+  text-shadow: 0 1px 0 rgb(255 255 255 / 0.45);
+  box-shadow:
+    inset 0 2px 0 rgb(255 255 255 / 0.55),
+    inset 0 -3px 0 rgb(0 0 0 / 0.18),
+    0 3px 0 var(--frame-wood-dark),
+    0 6px 12px rgb(0 0 0 / 0.25);
+  transition: transform 0.08s ease, filter 0.15s ease, box-shadow 0.08s ease;
+}
+button:hover:not(:disabled), a.button:hover { filter: brightness(1.08); transform: translateY(-1px); }
+button:active:not(:disabled), a.button:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 2px 5px rgb(0 0 0 / 0.3), 0 1px 0 var(--frame-wood-dark);
+}
+button:disabled { filter: grayscale(0.75); opacity: 0.55; }
+button:focus-visible, a.button:focus-visible { outline: 3px solid #ffe08a; outline-offset: 2px; }
+a.button.is-secondary {
+  color: var(--sheet-ink);
+  background: linear-gradient(color-mix(in srgb, var(--field-bg) 92%, white), color-mix(in srgb, var(--field-bg) 80%, var(--sheet-edge)));
+  text-shadow: none;
+}
+/* Boutons qui ne doivent pas prendre l'apparence dorée. */
+button.link, .vmap-close, .theme-toggle, .vmap-icon {
+  font-family: inherit;
+  letter-spacing: normal;
+  text-shadow: none;
+  box-shadow: none;
+  border: 0;
+  background: none;
+  transform: none;
+}
+button.link { color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; padding: 0; }
+.place-sheet button.link { color: color-mix(in srgb, var(--sheet-ink) 80%, var(--accent)); }
+
+/* --- Champs ------------------------------------------------------------------------------ */
+input, select, textarea {
+  font: inherit;
+  color: var(--sheet-ink);
+  background: var(--field-bg);
+  border: 2px solid var(--field-edge);
+  border-radius: 8px;
+  padding: 8px 10px;
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.12);
+}
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--frame-gold); outline-offset: 1px; border-color: var(--frame-gold); }
+input::placeholder { color: color-mix(in srgb, var(--sheet-ink) 45%, transparent); font-style: italic; }
+
+/* --- Indicateur de temps réel : une gemme qui brille --------------------------------------- */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.status::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff 0 1px, currentColor 3px);
+  box-shadow: 0 0 8px currentColor;
+}
+.status[data-status='connecting']::before, .status[data-status='reconnecting']::before { animation: game-blink 1s ease-in-out infinite; }
+@keyframes game-blink { 50% { opacity: 0.3; } }
+
+/* --- Listes : chaque élément est une petite tablette ------------------------------------- */
+.place-sheet :is(.offers, .games, .caravans) li {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--field-bg) 75%, transparent);
+  border: 1px solid color-mix(in srgb, var(--frame-gold) 35%, transparent);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--sheet-edge) 80%, transparent);
+}
+
+/* --- Classement : tableau d'honneur, médailles des trois premiers -------------------------- */
+.ranking thead th { font-family: var(--font-heading); font-size: 0.8rem; color: color-mix(in srgb, var(--sheet-ink) 70%, transparent); border-bottom: 2px solid var(--frame-gold); }
+.ranking tbody tr:nth-child(-n + 3) td:first-child { font-size: 0; }
+.ranking tbody tr:nth-child(1) td:first-child::before { content: '🥇'; font-size: 1.3rem; }
+.ranking tbody tr:nth-child(2) td:first-child::before { content: '🥈'; font-size: 1.3rem; }
+.ranking tbody tr:nth-child(3) td:first-child::before { content: '🥉'; font-size: 1.3rem; }
+.ranking tbody tr:nth-child(1) { background: linear-gradient(90deg, rgb(226 179 60 / 0.25), transparent); }
+.ranking tr[aria-current='true'] { box-shadow: inset 4px 0 0 var(--frame-gold); }
+
+/* --- Taverne : bulles de conversation ---------------------------------------------------- */
+.messages { gap: 10px; }
+.messages li {
+  justify-self: start;
+  max-width: 85%;
+  padding: 8px 12px;
+  border-radius: 14px 14px 14px 4px;
+  background: color-mix(in srgb, var(--field-bg) 85%, transparent);
+  border: 1px solid color-mix(in srgb, var(--frame-gold) 30%, transparent);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.1);
+}
+.messages li[data-mine] {
+  justify-self: end;
+  border-radius: 14px 14px 4px 14px;
+  background: color-mix(in srgb, var(--btn-top) 45%, var(--field-bg));
+}
+.messages li strong { font-family: var(--font-heading); font-size: 0.85rem; margin-right: 4px; }
+.presence li::before { content: '🍺 '; }
+
+/* --- Mes données : la suppression est une zone de danger ---------------------------------- */
+.place-sheet section[aria-label='Supprimer mon compte'] { border-color: color-mix(in srgb, var(--warn) 55%, transparent); }
+.place-sheet section[aria-label='Supprimer mon compte'] button { --btn-top: #f08a6c; --btn-mid: #c0392b; --btn-bottom: #8e2a1f; --btn-ink: #fff4ec; text-shadow: 0 1px 0 rgb(0 0 0 / 0.35); }
+
+/* --- Bouton de thème flottant, en haut à droite des lieux ------------------------------- */
+.corner-tools { position: fixed; top: 14px; right: 14px; z-index: 3; }
+@media (max-width: 600px) { .corner-tools { top: auto; bottom: 14px; } }
+.corner-tools .theme-toggle {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  background: radial-gradient(circle at 35% 30%, #fff8e1, var(--sheet-mid));
+  box-shadow: 0 0 0 3px var(--frame-gold), 0 0 0 6px var(--frame-wood), 0 6px 14px rgb(0 0 0 / 0.35);
+  transition: transform 0.15s ease;
+}
+.corner-tools .theme-toggle:hover { transform: rotate(-12deg) scale(1.06); }
+
+/* --- Sortie d'un lieu par le décor ------------------------------------------------------- */
+/* Le contenu passe au-dessus du décor, mais seul le parchemin capte les clics : partout
+   ailleurs, le clic atteint le décor, qui ramène au village. */
+main:has(.place-sheet) { position: relative; z-index: 1; pointer-events: none; padding-top: 28px; }
+main:has(.place-sheet) > * { pointer-events: auto; }
+.exit-area { cursor: pointer; }
+.place-backdrop.exit-area .place-scene { transition: filter 0.3s ease, transform 0.6s ease; }
+.place-backdrop.exit-area:hover .place-scene { filter: var(--place-dim) brightness(1.08); transform: scale(1.01); }
+/* Étiquette qui suit la souris au-dessus du décor. */
+.exit-hint {
+  position: fixed;
+  z-index: 5;
+  transform: translate(16px, 14px);
+  pointer-events: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--title-gold);
+  background: rgb(30 18 10 / 0.85);
+  box-shadow: 0 0 0 2px var(--frame-gold), 0 6px 14px rgb(0 0 0 / 0.35);
+  white-space: nowrap;
+}
+/* Consigne affichée à l'arrivée dans un lieu, qui s'efface d'elle-même. */
+.exit-tip {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  z-index: 2;
+  margin: 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: #fff6dc;
+  background: rgb(30 18 10 / 0.7);
+  animation: exit-tip 6s ease forwards;
+}
+@keyframes exit-tip { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+/* Lien d'évitement : invisible, il apparaît quand il reçoit le focus au clavier. */
+.place-exit-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 6;
+  transform: translateY(-200%);
+  padding: 8px 14px;
+  border-radius: 8px;
+  color: var(--btn-ink);
+  background: var(--btn-top);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  text-decoration: none;
+}
+.place-exit-link:focus-visible { transform: none; outline: 3px solid #ffe08a; }
+@media (hover: none) {
+  .exit-tip { animation-duration: 9s; }
+}
+
+/* --- Écran titre : connexion et fondation du village --------------------------------------- */
+main:has(.title-screen) { max-width: none; padding: 0; }
+.title-screen {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 22px;
+  padding: 32px 16px 56px;
+}
+.title-logo { text-align: center; color: #fff6dc; text-shadow: 0 3px 10px rgb(0 0 0 / 0.55); }
+.title-logo h1 {
+  margin: 0;
+  font-size: clamp(2.8rem, 9vw, 5.2rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  background: linear-gradient(#fff3c4, #f0c24b 55%, #b07d12);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 3px 0 #4a2f1b) drop-shadow(0 8px 14px rgb(0 0 0 / 0.5));
+}
+.title-logo p { margin: 4px 0 0; font-size: 1.1rem; font-style: italic; }
+.title-crown { display: block; font-size: 2.6rem; animation: title-float 3s ease-in-out infinite alternate; }
+@keyframes title-float { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+.title-card { width: min(400px, 100%); padding: 22px 24px 18px; }
+.title-card h2 { justify-content: center; margin-bottom: 14px; }
+.title-card h2::after { display: none; }
+.title-card form { max-width: none; }
+.title-card button[type='submit'] { margin-top: 6px; padding: 12px; font-size: 1.05rem; }
+.title-switch { margin: 14px 0 0; text-align: center; }
+.title-footer { font-size: 0.85rem; padding: 4px 14px; border-radius: 999px; background: rgb(30 18 10 / 0.55); color: #fff6dc; }
+.title-footer p { margin: 0; }
+.title-footer .muted { color: #e9dcc0; }
+.title-flag { transform-box: fill-box; transform-origin: 0 50%; animation: ranking-wave 1.6s ease-in-out infinite alternate; }
+.title-birds { animation: title-fly 60s linear infinite; }
+.title-bird { animation: title-flap 0.6s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+@keyframes title-fly { from { transform: translateX(-120px); } to { transform: translateX(1720px); } }
+@keyframes title-flap { from { transform: scaleY(1); } to { transform: scaleY(0.4); } }
+@media (prefers-reduced-motion: reduce) { .title-screen * { animation: none !important; } }
+
+/* --- ATH du Donjon ----------------------------------------------------------------------- */
+.heroes, .monsters { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+.fighter-card {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--field-bg) 80%, transparent);
+  border: 2px solid color-mix(in srgb, #3f7d3a 55%, var(--frame-gold));
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--sheet-edge) 90%, transparent);
+  transition: transform 0.2s ease, opacity 0.3s ease;
+}
+.fighter-card.is-enemy { border-color: color-mix(in srgb, #a3242f 70%, var(--frame-gold)); }
+.fighter-card.is-active { box-shadow: 0 0 0 3px #ffe08a, 0 0 16px rgb(255 214 110 / 0.6); }
+.fighter-card[data-down='true'] { opacity: 0.45; filter: grayscale(1); }
+.fighter-card[data-down='true'] .fighter-name { text-decoration: line-through; }
+.fighter-portrait {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 1.6rem;
+  background: radial-gradient(circle at 35% 30%, #fff8e1, var(--sheet-edge));
+  box-shadow: 0 0 0 2px var(--frame-gold), inset 0 -3px 6px rgb(0 0 0 / 0.2);
+}
+.fighter-card.is-enemy .fighter-portrait { background: radial-gradient(circle at 35% 30%, #ffe1dc, #b5564b); animation: fighter-menace 2.4s ease-in-out infinite alternate; }
+@keyframes fighter-menace { from { transform: scale(1); } to { transform: scale(1.06) rotate(-3deg); } }
+.fighter-body { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.fighter-name { font-family: var(--font-heading); font-size: 0.92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hp-bar { position: relative; height: 16px; border-radius: 999px; background: rgb(40 20 10 / 0.55); box-shadow: inset 0 2px 3px rgb(0 0 0 / 0.5), 0 0 0 1px var(--frame-gold); overflow: hidden; }
+.hp-fill { height: 100%; background: linear-gradient(#7fd36b, #3f9d4a); transition: width 0.5s ease; }
+.hp-bar[data-level='mid'] .hp-fill { background: linear-gradient(#f5d36b, #d9a52a); }
+.hp-bar[data-level='low'] .hp-fill { background: linear-gradient(#f08a6c, #c0392b); }
+.is-enemy .hp-fill { background: linear-gradient(#f08a6c, #a3242f); }
+.hp-text { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.72rem; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgb(0 0 0 / 0.8); }
+.fighter-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.fighter-tags span { font-size: 0.7rem; padding: 1px 7px; border-radius: 999px; background: color-mix(in srgb, var(--frame-gold) 25%, transparent); }
+.countdown { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 999px; font-family: var(--font-heading); color: #fff6dc; background: rgb(40 20 10 / 0.8); box-shadow: 0 0 0 2px var(--frame-gold); }
+.countdown[data-urgent] { color: #ffd6cc; box-shadow: 0 0 0 2px #c0392b, 0 0 12px rgb(255 80 60 / 0.6); animation: game-blink 0.6s ease-in-out infinite; }
+.actions { gap: 10px; }
+.skill { display: inline-flex; align-items: center; gap: 6px; }
+.skill.is-attack { --btn-top: #f4a07f; --btn-mid: #d0573a; --btn-bottom: #9b3424; --btn-ink: #fff4ec; text-shadow: 0 1px 0 rgb(0 0 0 / 0.35); }
+.skill.is-defend { --btn-top: #b9cde6; --btn-mid: #6f8fb8; --btn-bottom: #46638a; --btn-ink: #fff; text-shadow: 0 1px 0 rgb(0 0 0 / 0.35); }
+.skill.is-heal { --btn-top: #b6e8a6; --btn-mid: #5fae4f; --btn-bottom: #3c7d31; --btn-ink: #fff; text-shadow: 0 1px 0 rgb(0 0 0 / 0.35); }
+.door-button { font-size: 1.1rem; padding: 14px 22px; }
+.combat-log .log li { padding-left: 22px; position: relative; }
+.combat-log .log li::before { content: '⚔'; position: absolute; left: 0; color: var(--frame-gold); }
+.outcome { text-align: center; }
+.outcome h2 { justify-content: center; font-size: 1.8rem; }
+.outcome h2::after { display: none; }
+.outcome[data-outcome='won'] h2 { color: #b07d12; text-shadow: 0 0 14px rgb(255 214 110 / 0.7); }
+.outcome[data-outcome='lost'] h2 { color: #a3242f; }
+
+/* --- ATH du village ---------------------------------------------------------------------- */
+.vmap-pill {
+  font-family: var(--font-heading);
+  color: #fff6dc;
+  background: linear-gradient(#6b4423, #4a2f1b);
+  border-radius: 10px;
+  box-shadow: 0 0 0 2px var(--frame-gold), inset 0 2px 0 rgb(255 255 255 / 0.15), 0 4px 10px rgb(0 0 0 / 0.35);
+}
+.vmap-pill strong { color: #ffe9a8; font-weight: 900; }
+.vmap-pill small { color: #e2cfa7; font-family: var(--font-body); }
+.vmap-tools .status { padding: 6px 10px; border-radius: 999px; color: #7fd36b; background: rgb(30 18 10 / 0.6); }
+.vmap-tools .status[data-status='reconnecting'] { color: #f5d36b; }
+.vmap-icon {
+  font-family: var(--font-heading);
+  color: #fff6dc;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: linear-gradient(#6b4423, #4a2f1b);
+  box-shadow: 0 0 0 2px var(--frame-gold), 0 4px 10px rgb(0 0 0 / 0.35);
+}
+.vmap-panel {
+  color: var(--sheet-ink);
+  background: radial-gradient(ellipse at 50% 40%, var(--sheet-light) 0%, var(--sheet-mid) 70%, var(--sheet-edge) 100%);
+  box-shadow: 0 0 0 3px var(--frame-gold), 0 0 0 8px var(--frame-wood), 0 0 0 10px var(--frame-wood-dark), 0 16px 34px rgb(0 0 0 / 0.45);
+}
+.vmap-panel h2 { font-family: var(--font-heading); }
+.vmap-panel h2::after { display: none; }
+.vmap-close { color: var(--sheet-ink); }

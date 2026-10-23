@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { RESOURCES, type Resource } from '@/modules/realm/contracts'
 import { useChannel } from '@/platform/realtime/use-channel'
 import { Entity } from '@/ui/entity'
+import { ExitArea } from '@/ui/places'
 import { look } from '@/ui/theme'
 import type { CaravanApi } from './api'
 import {
@@ -499,12 +500,15 @@ export function CaravanJourney({ caravanId }: { caravanId: string }) {
       <h1 className="sr-only">
         Caravane {view.role === 'sender' ? `vers ${view.recipientName}` : `de ${view.senderName}`}
       </h1>
-      <JourneyScene
-        phase={phase}
-        cargo={view.cargo}
-        escort={view.escort}
-        destination={view.recipientName}
-      />
+      {/* La route est la sortie de la vue : un clic ramène au village, comme le décor d'un lieu. */}
+      <ExitArea className="journey-exit">
+        <JourneyScene
+          phase={phase}
+          cargo={view.cargo}
+          escort={view.escort}
+          destination={view.recipientName}
+        />
+      </ExitArea>
       <ProgressBar
         progress={progress}
         from={home}

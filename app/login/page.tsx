@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
 import { HealthStatus } from '@/modules/system/ui'
 import { authClient } from '@/platform/auth/client'
-import { Entity } from '@/ui/entity'
+import { PlaceBackdrop } from '@/ui/places'
 
 /**
  * Messages affichés pour les erreurs renvoyées par Better Auth.
@@ -22,7 +22,10 @@ function messageFor(error: { code?: string; status: number }): string {
   return (error.code && ERRORS[error.code]) || 'La connexion a échoué.'
 }
 
-/** Page de connexion et de création de compte. */
+/**
+ * Page de connexion et de création de compte, présentée comme l'écran titre du jeu : le
+ * château du royaume en fond, le nom du jeu en lettres d'or, et le formulaire sur un parchemin.
+ */
 export default function LoginPage() {
   const router = useRouter()
   const [mode, setMode] = useState<'signIn' | 'signUp'>('signIn')
@@ -50,20 +53,33 @@ export default function LoginPage() {
   }
 
   return (
-    <>
-      <h1>
-        <Entity kind="village" /> Royaumes
-      </h1>
-      <p className="muted">{mode === 'signIn' ? 'Connexion' : 'Création de compte'}</p>
-      <div className="panel">
+    <div className="title-screen">
+      <PlaceBackdrop kind="title" />
+      <header className="title-logo">
+        <span className="title-crown" aria-hidden="true">
+          👑
+        </span>
+        <h1>Royaumes</h1>
+        <p>Bâtissez votre village, explorez le donjon, commercez avec les autres seigneurs.</p>
+      </header>
+      <div className="title-card">
+        <h2>{mode === 'signIn' ? 'Connexion' : 'Nouveau seigneur'}</h2>
         <form onSubmit={submit}>
           {mode === 'signUp' && (
-            <input name="name" placeholder="Pseudo" required minLength={2} maxLength={30} />
+            <input
+              name="name"
+              placeholder="Pseudo"
+              aria-label="Pseudo"
+              required
+              minLength={2}
+              maxLength={30}
+            />
           )}
           <input
             name="email"
             type="email"
             placeholder="Adresse électronique"
+            aria-label="Adresse électronique"
             required
             autoComplete="email"
           />
@@ -71,6 +87,7 @@ export default function LoginPage() {
             name="password"
             type="password"
             placeholder="Mot de passe (8 caractères minimum)"
+            aria-label="Mot de passe"
             required
             minLength={8}
             autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'}
@@ -78,9 +95,13 @@ export default function LoginPage() {
           <button type="submit" disabled={pending}>
             {mode === 'signIn' ? 'Se connecter' : 'Créer mon compte'}
           </button>
-          {error && <p className="error">{error}</p>}
+          {error && (
+            <p className="error" role="alert">
+              {error}
+            </p>
+          )}
         </form>
-        <p>
+        <p className="title-switch">
           <button
             className="link"
             type="button"
@@ -93,7 +114,9 @@ export default function LoginPage() {
           </button>
         </p>
       </div>
-      <HealthStatus />
-    </>
+      <footer className="title-footer">
+        <HealthStatus />
+      </footer>
+    </div>
   )
 }
