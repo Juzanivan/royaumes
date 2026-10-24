@@ -15,7 +15,7 @@ revues. Il s'adresse à la personne qui reprendrait le projet.
 | Modules métier | 7 : `realm`, `dungeon`, `market`, `ranking`, `tavern`, `system`, et `caravan` (évaluation finale) |
 | Briques de la plateforme | 9 : `auth`, `cron`, `db`, `event-store`, `http`, `outbox`, `privacy`, `projection`, `realtime` ; et un service extrait, `src/services/village` (82 lignes) |
 | Lignes de code, hors tests | 17 357 (`src` et `app`), contre 8 266 à `td11-fin` : l'essentiel de la hausse vient de l'interface de jeu (scènes, carte du village, voyage de la caravane) |
-| Fichiers de test, nombre de tests | 44 fichiers, 294 tests (33 fichiers et 232 tests à `td11-fin`) |
+| Fichiers de test, nombre de tests | 44 fichiers, 298 tests (33 fichiers et 232 tests à `td11-fin`) |
 | Commits | 79 à l'étiquette `td11-fin` ; voir `git rev-list --count eval-fin` |
 | Hébergement | Vercel (Francfort), base Neon (Francfort) |
 
@@ -54,7 +54,7 @@ final du projet, le 2026-10-23.
 
 | Caractéristique | Indicateur | Valeur | Appréciation |
 | --- | --- | --- | --- |
-| Adéquation fonctionnelle | Tests réussis ; couverture des domaines | 294 tests réussis ; domaines couverts à 99,8 % des lignes (537 sur 538), dont celui de la Caravane | Satisfaisante. Les règles du jeu sont presque entièrement vérifiées par des fonctions pures, et les parcours par des tests de l'API. |
+| Adéquation fonctionnelle | Tests réussis ; couverture des domaines | 298 tests réussis ; domaines couverts à 99,8 % des lignes (537 sur 538), dont celui de la Caravane | Satisfaisante. Les règles du jeu sont presque entièrement vérifiées par des fonctions pures, et les parcours par des tests de l'API. |
 | Efficacité des performances | Débit et p99 des lectures ; respect du budget | De 133 (Marché) à 222 (Village) requêtes par seconde ; p99 de 128 à 209 ms, sans erreur (`perf/apres.json`) | Satisfaisante en local : le budget (p99 < 500 ms, 20 connexions) est respecté avec une marge de 290 ms. Rien n'est mesuré en production, ni pour les flux temps réel. |
 | Fiabilité | Tests de concurrence, de reprise et d'idempotence ; messages abandonnés | Une douzaine de tests de concurrence, d'interruption, de doublon ou de reprise (journal, boîte d'envoi, projections, saga, service Village) ; aucun message abandonné en développement | Satisfaisante. Les accès simultanés, les remises en double et la panne d'un service sont couverts. La tâche quotidienne signale désormais les lettres mortes. |
 | Sécurité | Exigences des revues de sécurité | 54 exigences : 48 conformes, 5 en risque accepté, 1 à vérifier en production (S6) | Satisfaisante, sous réserve de S6, en attente depuis le TD5. La limitation des tentatives est partagée entre instances depuis le TD11 (DT-004). |
@@ -65,9 +65,9 @@ final du projet, le 2026-10-23.
 
 | Indicateur | Valeur |
 | --- | --- |
-| Entrées consignées | 16 (DT-001 à DT-016) |
-| Entrées remboursées, dont à l'échéance prévue | 7, toutes à l'échéance prévue (DT-001 à DT-007) |
-| Entrées ouvertes | 8 : DT-008 à DT-011 (revue de conformité du TD10), DT-012 à DT-014 (extraction du Village), DT-015 (droit de rectification), DT-016 (limite de trois caravanes vérifiée hors transaction) |
+| Entrées consignées | 17 (DT-001 à DT-017) |
+| Entrées remboursées, dont à l'échéance prévue | 8 : DT-001 à DT-007 à l'échéance prévue, et DT-015 (droit de rectification) à l'évaluation finale |
+| Entrées ouvertes | 9 : DT-008 à DT-011 (revue de conformité du TD10), DT-012 à DT-014 (extraction du Village), DT-016 (limite de trois caravanes vérifiée hors transaction), DT-017 (adresse changée sans confirmation) |
 
 Analyse :
 
@@ -84,7 +84,7 @@ Le bilan fait aussi apparaître deux faiblesses :
 - Le droit de rectification, relevé dès le TD10 par le registre des traitements, n'avait
   été inscrit ni dans le registre de la dette ni dans le code. C'est le seul cas d'une
   dette découverte par la relecture du bilan, et non consignée lorsqu'elle est apparue.
-  Elle est désormais inscrite (DT-015).
+  Elle a été inscrite (DT-015), puis remboursée à l'évaluation finale.
 
 La dette de la Caravane (DT-016) a été consignée dans le code et dans le registre au moment
 où le raccourci a été pris, comme les sept premières : la leçon de DT-015 a été appliquée.
@@ -100,7 +100,7 @@ Leur échéance est liée à un événement, le réexamen de l'ADR 0009, et non 
 | Sécurité du Donjon | 14 | 12 | D10 et D14 en risque accepté | Évaluer le rythme des notifications du canal discret ; réexaminer D14 si un identifiant devient suffisant pour agir |
 | Sécurité du Marché | 10 | 10 | Aucune | DT-007, remboursée au TD11 |
 | Sécurité de la Caravane | 14 | 12 | C4 (DT-016) et C13 en risque accepté | Rembourser DT-016 ; appliquer le même examen à tout nouveau type de voyage |
-| Conformité au RGPD | 10 | 7 | R8 et R9 non conformes ; R10 en risque accepté | DT-008 à DT-011, DT-015 ; passer à l'offre Pro de Vercel et accepter son DPA avant toute mise en service auprès de joueurs réels |
+| Conformité au RGPD | 10 | 7 | R8 et R9 non conformes ; R10 en risque accepté | DT-008 à DT-011 ; DT-015 remboursée ; passer à l'offre Pro de Vercel et accepter son DPA avant toute mise en service auprès de joueurs réels |
 
 Toutes les actions qui portent sur le code figurent au registre de la dette. Trois
 actions ouvertes n'y figurent pas, et sont reprises dans les recommandations :
@@ -122,7 +122,7 @@ actions ouvertes n'y figurent pas, et sont reprises dans les recommandations :
 Deux préalables s'ajoutent avant toute ouverture à des joueurs réels :
 
 - passer à l'offre Pro de Vercel, et accepter son DPA ;
-- rembourser les dettes de conformité DT-008 à DT-011 et DT-015, et la dette DT-016 de la Caravane.
+- rembourser les dettes de conformité DT-008 à DT-011, la dette DT-016 de la Caravane et la dette DT-017 du profil.
 
 ## 7. Conclusion
 
