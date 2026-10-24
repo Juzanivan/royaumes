@@ -1,7 +1,7 @@
 import { inArray } from 'drizzle-orm'
 import type { Db } from '@/platform/db/client'
 import type { EventStore, StoredEvent } from '@/platform/event-store/event-store'
-import { ERASED_NAME, type PersonalDataContributor } from '@/platform/privacy/privacy'
+import { ERASED_NAME, ERASURE, type PersonalDataContributor } from '@/platform/privacy/privacy'
 import { GAME_CHANNEL_PREFIX } from './contracts'
 import { openGames } from './infrastructure/schema'
 
@@ -21,6 +21,17 @@ interface Participation {
  * expédition qu'il a ouverte ou rejointe.
  */
 export function createDungeonPersonalData(store: EventStore, db: Db): PersonalDataContributor {
+  /** Remplace le nom de l'hôte des expéditions ouvertes dont la création vient d'être réécrite. */
+  async function renameHosts(rewritten: StoredEvent[], name: string) {
+    const hosted = rewritten
+      .filter(
+        (event) => event.type === 'GameCreated' && event.stream.startsWith(GAME_CHANNEL_PREFIX),
+      )
+      .map(gameIdOf)
+    if (hosted.length === 0) return
+    await db.update(openGames).set({ hostName: name }).where(inArray(openGames.gameId, hosted))
+  }
+
   return {
     name: 'dungeon',
 
@@ -47,30 +58,20 @@ export function createDungeonPersonalData(store: EventStore, db: Db): PersonalDa
       return { expeditions: [...games.values()] }
     },
 
-    redact(event, playerId) {
+    redact(event, playerId, { name } = ERASURE) {
       if (!event.stream.startsWith(GAME_CHANNEL_PREFIX)) return null
       if (event.type === 'GameCreated' && event.data.hostId === playerId) {
-        return event.data.hostName === ERASED_NAME ? null : { ...event.data, hostName: ERASED_NAME }
+        return event.data.hostName === name ? null : { ...event.data, hostName: name }
       }
       if (event.type === 'PlayerJoined' && event.data.playerId === playerId) {
-        return event.data.name === ERASED_NAME ? null : { ...event.data, name: ERASED_NAME }
+        return event.data.name === name ? null : { ...event.data, name }
       }
       return null
     },
 
     // La liste des expéditions ouvertes contient le nom de l'hôte : celui des expéditions
     // dont l'événement GameCreated vient d'être réécrit est remplacé.
-    async erase(_playerId, rewritten) {
-      const hosted = rewritten
-        .filter(
-          (event) => event.type === 'GameCreated' && event.stream.startsWith(GAME_CHANNEL_PREFIX),
-        )
-        .map(gameIdOf)
-      if (hosted.length === 0) return
-      await db
-        .update(openGames)
-        .set({ hostName: ERASED_NAME })
-        .where(inArray(openGames.gameId, hosted))
-    },
+    erase: (_playerId, rewritten) => renameHosts(rewritten, ERASED_NAME),
+    rename: (_playerId, name, rewritten) => renameHosts(rewritten, name),
   }
 }

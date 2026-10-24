@@ -177,3 +177,81 @@ describe('Droits des joueurs - durée de conservation', () => {
     expect(reports.outbox.ok).toBe(true)
   })
 })
+
+/** Demande, au nom d'un joueur, à changer de nom. */
+const rename = (api: TestApi, name: unknown, user: string | null = 'alice') =>
+  api.api.request('/api/account/name', {
+    method: 'PATCH',
+    headers: {
+      'content-type': 'application/json',
+      ...(user ? { 'x-test-user': user } : {}),
+    },
+    body: JSON.stringify({ name }),
+  })
+
+describe('Droits des joueurs - rectification du nom', () => {
+  it('refuse une requête anonyme (401) et un nom invalide ou réservé (400)', async () => {
+    const { api } = await aliceHasPlayed()
+    expect((await rename(api, 'Aliénor', null)).status).toBe(401)
+    for (const name of ['A', ' ', 'x'.repeat(31), 'Joueur effacé', 42]) {
+      expect((await rename(api, name)).status).toBe(400)
+    }
+  })
+
+  it('remplace le nom du joueur dans le journal, sans toucher au nom de son village', async () => {
+    const { api, gameId } = await aliceHasPlayed()
+    const res = await rename(api, '  Aliénor ')
+    // Deux événements réécrits : l'ouverture de l'expédition et l'offre ; pas la fondation.
+    expect(await res.json()).toEqual({ name: 'Aliénor', eventsRewritten: 2 })
+
+    expect(await eventData(api, `dungeon-${gameId}`, 'GameCreated')).toMatchObject({
+      hostId: 'alice',
+      hostName: 'Aliénor',
+    })
+    expect(await eventData(api, `dungeon-${gameId}`, 'PlayerJoined')).toMatchObject({
+      name: 'bob',
+    })
+    expect(await eventData(api, 'village-alice', 'VillageFounded')).toMatchObject({
+      name: 'Valombre',
+    })
+    // Une rectification n'est pas un effacement : le registre des effacements reste vide.
+    expect(await query(api, sql`SELECT * FROM platform.erasures`)).toEqual([])
+  })
+
+  it('reporte le nouveau nom dans les tables de tous les modules, et peut être relancée', async () => {
+    const { api } = await aliceHasPlayed()
+    await rename(api, 'Aliénor')
+
+    const authors = await query<{ author_id: string; author_name: string }>(
+      api,
+      sql`SELECT author_id, author_name FROM tavern.messages ORDER BY id`,
+    )
+    expect(authors).toEqual([
+      { author_id: 'alice', author_name: 'Aliénor' },
+      { author_id: 'bob', author_name: 'bob' },
+    ])
+    expect(await query(api, sql`SELECT player_name FROM tavern.presence`)).toEqual([
+      { player_name: 'Aliénor' },
+    ])
+    const offers = (await (await api.get('/api/market/offers', 'bob')).json()) as {
+      offers: { sellerName: string }[]
+    }
+    expect(offers.offers.map((offer) => offer.sellerName)).toEqual(['Aliénor'])
+    expect(await rankingOf(api, 'alice')).toMatchObject({ label: 'Aliénor' })
+
+    // Relancée, la rectification ne réécrit plus rien.
+    expect(await (await rename(api, 'Aliénor')).json()).toEqual({
+      name: 'Aliénor',
+      eventsRewritten: 0,
+    })
+  })
+
+  it('donne le même classement après une reconstruction de la projection', async () => {
+    const { api } = await aliceHasPlayed()
+    await rename(api, 'Aliénor')
+    const before = await rankingOf(api, 'alice')
+    await api.db.execute(sql`DELETE FROM platform.projections WHERE name = 'ranking'`)
+    await createProjectionRunner(api.db).catchUp(rankingProjection)
+    expect(await rankingOf(api, 'alice')).toEqual(before)
+  })
+})

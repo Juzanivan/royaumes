@@ -5,7 +5,8 @@ import { messages, presence } from './infrastructure/schema'
 
 /**
  * Données personnelles de la Taverne : les messages du joueur et sa présence.
- * La Taverne n'enregistre pas d'événements : l'effacement est une simple suppression.
+ * La Taverne n'enregistre pas d'événements : l'effacement est une simple suppression, et la
+ * rectification une simple mise à jour.
  */
 export function createTavernPersonalData(db: Db): PersonalDataContributor {
   return {
@@ -28,6 +29,12 @@ export function createTavernPersonalData(db: Db): PersonalDataContributor {
     async erase(playerId) {
       await db.delete(messages).where(eq(messages.authorId, playerId))
       await db.delete(presence).where(eq(presence.playerId, playerId))
+    },
+
+    // Droit de rectification : les messages et la présence du joueur portent son nouveau nom.
+    async rename(playerId, name) {
+      await db.update(messages).set({ authorName: name }).where(eq(messages.authorId, playerId))
+      await db.update(presence).set({ playerName: name }).where(eq(presence.playerId, playerId))
     },
   }
 }

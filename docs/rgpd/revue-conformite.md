@@ -48,4 +48,5 @@ Actions décidées :
 - retirer les offres ouvertes d'un joueur lors de l'effacement de ses données (DT-011) ;
 - passer à l'offre Pro de Vercel, et accepter son DPA, avant toute mise en service auprès de
   joueurs réels ;
-- mettre en œuvre le droit de rectification du nom d'un joueur.
+- mettre en œuvre le droit de rectification du nom d'un joueur (fait à l'évaluation finale :
+  `PATCH /api/account/name`, dette DT-015 remboursée).

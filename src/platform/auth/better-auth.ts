@@ -63,6 +63,11 @@ export function createBetterAuth(db: Db): AuthPort {
     }),
     // Connexion par adresse électronique et mot de passe, d'au moins 8 caractères.
     emailAndPassword: { enabled: true, minPasswordLength: 8 },
+    // Changement d'adresse électronique depuis le profil (le trône du château). Le projet
+    // n'envoie aucun courriel : l'adresse, jamais vérifiée, est remplacée sans confirmation.
+    // DETTE TECHNIQUE DT-017 (docs/qualite/dette-technique.md) : ni courriel de confirmation,
+    // ni mot de passe ne sont demandés ; une session ouverte suffit à changer d'adresse.
+    user: { changeEmail: { enabled: true, updateEmailWithoutVerification: true } },
     secret: resolveSecret(),
     baseURL: resolveBaseUrl(),
     // Origines autorisées : seules les adresses de ce projet peuvent émettre des requêtes
@@ -87,7 +92,9 @@ export function createBetterAuth(db: Db): AuthPort {
     async getUser(headers) {
       // Better Auth lit le cookie de session dans les en-têtes, et retrouve la session en base.
       const result = await auth.api.getSession({ headers })
-      return result ? { id: result.user.id, name: result.user.name } : null
+      return result
+        ? { id: result.user.id, name: result.user.name, email: result.user.email }
+        : null
     },
   }
 }

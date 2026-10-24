@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 import type { Db } from '@/platform/db/client'
 import type { EventStore } from '@/platform/event-store/event-store'
-import { ERASED_NAME, type PersonalDataContributor } from '@/platform/privacy/privacy'
+import { ERASED_NAME, ERASURE, type PersonalDataContributor } from '@/platform/privacy/privacy'
 import { OFFER_STREAM_PREFIX } from './contracts'
 import { offers } from './infrastructure/schema'
 
@@ -34,17 +34,13 @@ export function createMarketPersonalData(store: EventStore, db: Db): PersonalDat
       }
     },
 
-    redact(event, playerId) {
+    redact(event, playerId, { name } = ERASURE) {
       if (!event.stream.startsWith(OFFER_STREAM_PREFIX)) return null
       if (event.type === 'OfferPublished' && event.data.sellerId === playerId) {
-        return event.data.sellerName === ERASED_NAME
-          ? null
-          : { ...event.data, sellerName: ERASED_NAME }
+        return event.data.sellerName === name ? null : { ...event.data, sellerName: name }
       }
       if (event.type === 'OfferAccepted' && event.data.buyerId === playerId) {
-        return event.data.buyerName === ERASED_NAME
-          ? null
-          : { ...event.data, buyerName: ERASED_NAME }
+        return event.data.buyerName === name ? null : { ...event.data, buyerName: name }
       }
       return null
     },
@@ -54,6 +50,11 @@ export function createMarketPersonalData(store: EventStore, db: Db): PersonalDat
     // effacé restent proposées, leurs ressources en séquestre, et peuvent encore être acceptées.
     async erase(playerId) {
       await db.update(offers).set({ sellerName: ERASED_NAME }).where(eq(offers.sellerId, playerId))
+    },
+
+    // Droit de rectification : le nouveau nom du vendeur, sur ses offres en cours.
+    async rename(playerId, name) {
+      await db.update(offers).set({ sellerName: name }).where(eq(offers.sellerId, playerId))
     },
   }
 }

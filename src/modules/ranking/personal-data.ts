@@ -36,5 +36,11 @@ export function createRankingPersonalData(
         .set({ village: ERASED_VILLAGE })
         .where(and(eq(players.playerId, playerId), isNotNull(players.village)))
     },
+
+    // Droit de rectification : la projection reprend aussi le nouveau nom, lu dans le journal
+    // réécrit ; la table est mise à jour dès maintenant, sans attendre une reconstruction.
+    async rename(playerId, name) {
+      await db.update(players).set({ name }).where(eq(players.playerId, playerId))
+    },
   }
 }

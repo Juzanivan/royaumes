@@ -15,4 +15,6 @@ export interface AuthPort {
 export interface AuthUser {
   id: string
   name: string
+  /** Adresse électronique, présentée seulement au joueur lui-même, sur son profil. */
+  email?: string
 }

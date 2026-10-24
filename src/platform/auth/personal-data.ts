@@ -34,5 +34,10 @@ export function createIdentityPersonalData(db: Db): PersonalDataContributor {
     async erase(playerId) {
       await db.delete(user).where(eq(user.id, playerId))
     },
+
+    // Droit de rectification : le nom du compte, celui que les modules reçoivent de la session.
+    async rename(playerId, name) {
+      await db.update(user).set({ name, updatedAt: new Date() }).where(eq(user.id, playerId))
+    },
   }
 }

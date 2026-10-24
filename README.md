@@ -151,6 +151,9 @@ registre des traitements. Chaque joueur peut, depuis la
 page « Mes données » :
 
 - télécharger l'ensemble de ses données au format JSON (`GET /api/account/export`) ;
+- corriger son nom (`PATCH /api/account/name`), depuis le trône du château : le nouveau nom
+  remplace l'ancien dans le journal et dans les tables de tous les modules (droit de
+  rectification) ; l'adresse électronique et le mot de passe se changent au même endroit ;
 - supprimer son compte (`DELETE /api/account`) : ses données sont supprimées des tables de
   tous les modules, et son nom est remplacé par une mention neutre dans le journal
   d'événements (ADR 0008). Chaque effacement est consigné dans `platform.erasures`.

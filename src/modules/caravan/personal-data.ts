@@ -4,6 +4,7 @@ import type { EventStore } from '@/platform/event-store/event-store'
 import {
   ERASED_NAME,
   ERASED_VILLAGE,
+  ERASURE,
   type PersonalDataContributor,
 } from '@/platform/privacy/privacy'
 import { CARAVAN_STREAM_PREFIX } from './contracts'
@@ -37,16 +38,18 @@ export function createCaravanPersonalData(store: EventStore, db: Db): PersonalDa
         .filter((view) => view !== null)
     },
 
-    redact(event, playerId) {
+    // Le nom de l'expéditeur est remplacé ; le nom du village du destinataire ne l'est que par
+    // l'effacement, une rectification ne portant que sur le nom du joueur.
+    redact(event, playerId, { name, village } = ERASURE) {
       if (!event.stream.startsWith(CARAVAN_STREAM_PREFIX)) return null
       if (event.type === 'ExpeditionSent') {
-        const own = event.data.senderId === playerId && event.data.senderName !== ERASED_NAME
-        return own ? { ...event.data, senderName: ERASED_NAME } : null
+        const own = event.data.senderId === playerId && event.data.senderName !== name
+        return own ? { ...event.data, senderName: name } : null
       }
       if (event.type !== 'CaravanSent') return null
       const data = { ...event.data }
-      if (data.senderId === playerId) data.senderName = ERASED_NAME
-      if (data.recipientId === playerId) data.recipientName = ERASED_VILLAGE
+      if (data.senderId === playerId) data.senderName = name
+      if (village && data.recipientId === playerId) data.recipientName = village
       const changed =
         data.senderName !== event.data.senderName || data.recipientName !== event.data.recipientName
       return changed ? data : null
@@ -65,6 +68,11 @@ export function createCaravanPersonalData(store: EventStore, db: Db): PersonalDa
         // Une expédition n'a pas d'autre destinataire que la grotte, dont le nom reste.
         .where(and(eq(caravans.recipientId, playerId), ne(caravans.senderId, playerId)))
       await db.delete(destinations).where(eq(destinations.playerId, playerId))
+    },
+
+    // Droit de rectification : le nouveau nom de l'expéditeur, dans la liste des caravanes.
+    async rename(playerId, name) {
+      await db.update(caravans).set({ senderName: name }).where(eq(caravans.senderId, playerId))
     },
   }
 }
