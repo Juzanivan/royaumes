@@ -44,11 +44,9 @@ const STATUS_LABELS = {
  */
 export function VillageScreen({
   userId,
-  userName,
   travellers,
 }: {
   userId: string
-  userName: string
   /** Caravanes en route, fournies par la page : le Village ne dépend d'aucun autre module. */
   travellers?: MapTraveller[]
 }) {
@@ -146,7 +144,6 @@ export function VillageScreen({
         view={view}
         stock={stockAt(view, now)}
         error={error}
-        userName={userName}
         onUpgrade={upgrade}
         tools={statusLabel}
         travellers={travellers}

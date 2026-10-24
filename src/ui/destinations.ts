@@ -8,6 +8,8 @@ export const DESTINATIONS = [
   { href: '/market', kind: 'market', label: 'Marché' },
   { href: '/tavern', kind: 'tavern', label: 'Taverne' },
   { href: '/caravan', kind: 'caravan', label: 'Relais des caravanes' },
+  // Le crieur public n'est pas un module : il annonce les notes de version (src/ui/patch-notes.ts).
+  { href: '/news', kind: 'news', label: 'Crieur public' },
 ] as const
 
 export type Destination = (typeof DESTINATIONS)[number]

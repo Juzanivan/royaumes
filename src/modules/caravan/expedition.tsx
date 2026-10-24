@@ -2,7 +2,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { Entity } from '@/ui/entity'
-import { ExitArea } from '@/ui/places'
+import { EdgeExits } from '@/ui/places'
 import {
   CAVE_NAME,
   type CaravanError,
@@ -195,7 +195,7 @@ export function ExpeditionJourney({ view, serverNow }: { view: CaravanView; serv
   return (
     <div className="journey" data-phase={phase === 'returned' && empty ? 'cancelled' : phase}>
       <h1 className="sr-only">Expédition vers {CAVE_NAME}</h1>
-      <ExitArea className="journey-exit">
+      <div className="journey-stage">
         <ExpeditionScene
           phase={phase}
           escort={view.escort}
@@ -204,7 +204,9 @@ export function ExpeditionJourney({ view, serverNow }: { view: CaravanView; serv
             phase === 'exploring' || (phase === 'outbound' && elapsed > AT_CAVE - CAVE_APPROACH_MS)
           }
         />
-      </ExitArea>
+      </div>
+      {/* Le bord gauche, d'où vient la route, ramène au village. */}
+      <EdgeExits edges={['left']} />
       <ProgressBar
         progress={progress}
         from="Votre village"

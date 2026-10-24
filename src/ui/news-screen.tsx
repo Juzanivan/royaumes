@@ -12,7 +12,7 @@ const formatDate = (date: string) =>
 
 /**
  * Écran du crieur public : les notes de version, de la plus récente à la plus ancienne. Son
- * ouverture marque la dernière annonce comme lue, ce qui retire le sceau du menu du château.
+ * ouverture marque la dernière annonce comme lue, ce qui retire le parchemin scellé du crieur, sur la carte du village.
  */
 export function NewsScreen() {
   useEffect(markSeen, [])

@@ -60,7 +60,6 @@ function Traveller({ traveller, now }: { traveller: MapTraveller; now: number })
   }
   return (
     <a href={href} className="vmap-traveller" aria-label={label} onClick={navigate}>
-      <title>{label}</title>
       <g className="vmap-traveller-move" style={{ transform: `translate(${at[0]}px, ${at[1]}px)` }}>
         <circle className="vmap-halo" cx={0} cy={-6} r={18} />
         <g transform={facingRight ? 'scale(1.35)' : 'scale(-1.35 1.35)'}>

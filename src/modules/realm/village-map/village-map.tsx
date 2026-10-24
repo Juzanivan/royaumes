@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react'
 import { DESTINATIONS } from '@/ui/destinations'
+import { LATEST_VERSION, seenVersion } from '@/ui/patch-notes'
 import { BUILDINGS, type Building, CATALOG, type Stock, type VillageView } from '../contracts'
 import { affordable } from './affordable'
 import { Castle } from './buildings/castle'
@@ -17,7 +18,6 @@ import { MapLandmark } from './landmarks/map-landmark'
 import { CASTLE, DECOR, LANDMARKS, SLOTS } from './layout'
 import { BuildingPanel } from './panels/building-panel'
 import { FullscreenButton } from './panels/fullscreen-button'
-import { PlayerPanel } from './panels/player-panel'
 import { ResourceHud } from './panels/resource-hud'
 import { Celestial } from './scenery/celestial'
 import { Decor } from './scenery/decor'
@@ -52,7 +52,8 @@ function productionOf(view: VillageView, building: Building) {
  * bâtiment occupe un emplacement fixe et change d'apparence avec son niveau. La carte est
  * aussi la navigation du jeu : chaque lieu (Donjon, Classement, Marché, Taverne, relais des
  * caravanes) y est un
- * bâtiment qui mène à sa page, et le château ouvre le menu du joueur.
+ * bâtiment qui mène à sa page, et le château à sa grande salle (page /castle).
+ * Le crieur public signale par un parchemin scellé une annonce que le joueur n'a pas lue.
  * Ce composant n'affiche que ce que contient la vue du village : il ne connaît aucune règle
  * du jeu, et délègue l'amélioration d'un bâtiment à l'écran qui l'affiche.
  */
@@ -60,7 +61,6 @@ export function VillageMap({
   view,
   stock,
   error,
-  userName,
   onUpgrade,
   tools,
   travellers = [],
@@ -68,8 +68,6 @@ export function VillageMap({
   view: VillageView
   stock: Stock
   error: string | null
-  /** Nom du joueur, affiché dans le menu du château. */
-  userName: string
   onUpgrade: (building: Building) => void
   /** Réglages de l'écran affichés en haut à droite de la carte (présentation, état du temps réel). */
   tools?: ReactNode
@@ -93,8 +91,12 @@ export function VillageMap({
     return () => window.removeEventListener('resize', measure)
   }, [])
 
-  // Élément sélectionné : un bâtiment, dont le panneau s'ouvre, ou le château, qui ouvre le menu du joueur.
-  const [selected, setSelected] = useState<Building | 'castle' | null>(null)
+  // Bâtiment sélectionné, dont le panneau s'ouvre.
+  const [selected, setSelected] = useState<Building | null>(null)
+  // Annonce du crieur que le joueur n'a pas lue, signalée au-dessus du crieur public. Elle est lue
+  // après le montage : le navigateur seul sait quelle annonce a été lue.
+  const [news, setNews] = useState(false)
+  useEffect(() => setNews(seenVersion() !== LATEST_VERSION), [])
   // Bâtiments dont l'amélioration vient d'arriver : ils jouent une courte animation.
   const [upgrading, setUpgrading] = useState<Building[]>([])
   const previous = useRef(view.levels)
@@ -108,7 +110,7 @@ export function VillageMap({
     return () => clearTimeout(timer)
   }, [view.levels])
 
-  const toggle = (b: Building | 'castle') => setSelected((current) => (current === b ? null : b))
+  const toggle = (b: Building) => setSelected((current) => (current === b ? null : b))
 
   // Le château, les bâtiments et le décor sont dessinés du fond vers l'avant, selon leur
   // profondeur isométrique (x + y), afin que les plus proches masquent les plus éloignés.
@@ -119,18 +121,11 @@ export function VillageMap({
     })),
     {
       depth: CASTLE[0] + CASTLE[1],
-      node: (
-        <Castle
-          key="castle"
-          name={view.name}
-          selected={selected === 'castle'}
-          onSelect={() => toggle('castle')}
-        />
-      ),
+      node: <Castle key="castle" name={view.name} />,
     },
     ...DESTINATIONS.map((d) => ({
       depth: LANDMARKS[d.kind][0] + LANDMARKS[d.kind][1],
-      node: <MapLandmark key={d.kind} destination={d} />,
+      node: <MapLandmark key={d.kind} destination={d} news={d.kind === 'news' && news} />,
     })),
     ...BUILDINGS.map((b) => ({
       depth: SLOTS[b][0] + SLOTS[b][1],
@@ -161,8 +156,15 @@ export function VillageMap({
         </div>
       </div>
       <div className="vmap-viewport" ref={viewport}>
-        <svg className="vmap-scene" viewBox={`${VIEW.x} ${VIEW.y} ${VIEW.width} ${VIEW.height}`}>
-          <title>{`Carte du village ${view.name}`}</title>
+        {/* Nommée par aria-label, et non par <title> : le navigateur afficherait ce titre en
+            infobulle au moindre arrêt de la souris sur la carte. */}
+        {/* biome-ignore lint/a11y/useSemanticElements: un <fieldset> ne peut pas remplacer un <svg> ; le groupe est nommé par aria-label, sans <title> qui s'afficherait en infobulle. */}
+        <svg
+          className="vmap-scene"
+          viewBox={`${VIEW.x} ${VIEW.y} ${VIEW.width} ${VIEW.height}`}
+          role="group"
+          aria-label={`Carte du village ${view.name}`}
+        >
           <defs>
             <pattern
               id="vmap-stripes"
@@ -192,14 +194,7 @@ export function VillageMap({
           <Palisade />
         </svg>
       </div>
-      {selected === 'castle' && (
-        <PlayerPanel
-          villageName={view.name}
-          userName={userName}
-          onClose={() => setSelected(null)}
-        />
-      )}
-      {selected && selected !== 'castle' && (
+      {selected && (
         <BuildingPanel
           side={iso(...SLOTS[selected])[0] > ORIGIN_X ? 'left' : 'right'}
           building={selected}

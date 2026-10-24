@@ -53,7 +53,7 @@ function Moon() {
  * Il remplace le bouton de thème : dans la Taverne, on l'aperçoit par la fenêtre ; au Marché,
  * en plein ciel. Placé avant les bâtiments, il se couche derrière eux ; placé dans une fenêtre,
  * il disparaît sous son appui (clip). Sans animation (réglage du système), le thème change
- * aussitôt. L'attribut data-no-exit l'exclut de la sortie du lieu par le décor.
+ * aussitôt.
  */
 export function SceneCelestial({
   x,
@@ -125,12 +125,10 @@ export function SceneCelestial({
         role="button"
         tabIndex={0}
         aria-label={label}
-        data-no-exit=""
         onClick={cycle}
         onKeyDown={onKeyDown}
         style={{ animationDuration: `${HALF}ms`, ['--drop' as string]: `${drop}px` }}
       >
-        <title>{label}</title>
         <g transform={`translate(${x} ${y}) scale(${scale})`}>
           {theme === 'dark' ? <Moon /> : <Sun />}
         </g>

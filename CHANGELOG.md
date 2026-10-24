@@ -5,6 +5,31 @@ Les nouveautés de chaque version de Royaumes. Le format suit
 aux joueurs par le crieur public (`src/ui/patch-notes.ts`) : un test vérifie que les deux
 listes concordent.
 
+## [1.4] - 2026-10-24
+
+### Ajouté
+
+- Grande salle du château (`/castle`), ouverte depuis la carte : la porte des archives
+  (« Mes données »), le trône (profil) et une porte enchaînée (déconnexion).
+- Profil au trône (`/throne`) : changement de nom, d'adresse électronique et de mot de passe.
+- Droit de rectification (`PATCH /api/account/name`) : le nouveau nom remplace l'ancien dans
+  le journal et dans les tables de chaque module (dette DT-015 remboursée).
+- Crieur public sur la carte du village, entre le château et le Donjon, surmonté d'un
+  parchemin scellé tant que la dernière annonce n'a pas été lue.
+- Sortie des lieux par leurs bords gauche et droit (`EdgeExits`), assombris au survol, avec un
+  curseur de petit homme qui s'en va ; le bord gauche pour la vue de profil d'une caravane.
+- Curseur du jeu : une flèche dorée, et sa variante scintillante sur les éléments cliquables.
+
+### Modifié
+
+- Un clic au milieu du décor ne fait plus quitter le lieu.
+- Les scènes SVG sont nommées par `aria-label` et non plus par `<title>`, que le navigateur
+  affichait en infobulle.
+
+### Retiré
+
+- Le panneau du menu du joueur, sur la carte du village, remplacé par la grande salle.
+
 ## [1.3] - 2026-10-23
 
 ### Ajouté

@@ -72,8 +72,14 @@ export function JourneyScene({
     phase === 'returning' ? 'is-reversed' : '',
   ].join(' ')
   return (
-    <svg className={classes} viewBox="0 0 1600 900" preserveAspectRatio="xMidYMax slice">
-      <title>{`La caravane sur la route de ${destination}`}</title>
+    // biome-ignore lint/a11y/useSemanticElements: un <fieldset> ne peut pas remplacer un <svg> ; le groupe est nommé par aria-label, sans <title> qui s'afficherait en infobulle.
+    <svg
+      className={classes}
+      viewBox="0 0 1600 900"
+      preserveAspectRatio="xMidYMax slice"
+      role="group"
+      aria-label={`La caravane sur la route de ${destination}`}
+    >
       <JourneySky />
       <Landscape />
       <g
@@ -89,7 +95,7 @@ export function JourneyScene({
         <Horse x={1080} />
         <EscortFigures escort={escort} />
       </g>
-      <g className={BRIGANDS.includes(phase) ? `journey-brigands is-${phase}` : 'journey-brigands'}>
+      <g className={BRIGANDS.includes(phase) ? `journey-brigands is-$phase` : 'journey-brigands'}>
         <Brigand x={1260} flip={phase !== 'fleeing'} />
         <Brigand x={1380} flip={phase !== 'fleeing'} />
         <Brigand x={1490} flip={phase !== 'fleeing'} />

@@ -17,6 +17,20 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: '1.4',
+    date: '2026-10-24',
+    title: 'Les portes du château',
+    changes: [
+      'Le château s’ouvre sur sa grande salle, avec ses bannières, ses torches et son tapis rouge.',
+      'Au bout du tapis rouge, le trône, sa couronne posée sur le siège : on y change son nom, son adresse électronique et son mot de passe. Le nouveau nom est connu dans tout le royaume.',
+      'À gauche, la porte des archives mène à vos données ; à droite, une porte enchaînée et cadenassée permet de quitter le royaume (déconnexion).',
+      'Le crieur public s’installe sur la place, entre le château et le Donjon : un parchemin scellé flotte au-dessus de lui quand il a une nouvelle annonce.',
+      'On quitte désormais un lieu par ses bords : approchez la souris du bord gauche ou droit, le décor s’assombrit et un petit homme vous montre la sortie.',
+      'Une souris aux couleurs du royaume : une flèche dorée, qui scintille sur tout ce qui se clique.',
+      'Plus d’infobulle qui surgit quand la souris s’arrête sur la carte ou sur un décor.',
+    ],
+  },
+  {
     version: '1.3',
     date: '2026-10-23',
     title: 'La Grotte aux Échos',
@@ -68,7 +82,10 @@ export const PATCH_NOTES: PatchNote[] = [
   },
 ]
 
-/** Version la plus récente : le menu du château signale son annonce tant qu'elle n'a pas été lue. */
+/**
+ * Version la plus récente : le crieur public la signale sur la carte du village, tant que son
+ * annonce n'a pas été lue.
+ */
 export const LATEST_VERSION = PATCH_NOTES[0].version
 
 /** Clé du navigateur sous laquelle est retenue la dernière version lue par le joueur. */

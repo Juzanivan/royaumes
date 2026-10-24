@@ -87,9 +87,9 @@ button {
     padding: 8px 14px;
     background: var(--accent);
     color: white;
-    cursor: pointer;
+    cursor: var(--cursor-active);
 }
-button:disabled { opacity: 0.45; cursor: not-allowed; }
+button:disabled { opacity: 0.45; cursor: var(--cursor-default); }
 
 /* Entités du jeu (couche de thème). */
 .entity { display: inline-flex; gap: 6px; align-items: center; }
@@ -196,7 +196,7 @@ body:has(.vmap) { overflow-x: hidden; }
 .vmap-banner text { font-size: 12px; font-weight: 700; fill: #5a3a1c; letter-spacing: 0.04em; }
 
 /* Bâtiments : survol, sélection, blason de niveau. */
-.vmap-building { cursor: pointer; outline: none; transition: transform 0.18s ease, filter 0.18s ease; }
+.vmap-building { cursor: var(--cursor-active); outline: none; transition: transform 0.18s ease, filter 0.18s ease; }
 .vmap-building:hover, .vmap-building:focus-visible { transform: translateY(-4px); filter: brightness(1.08) drop-shadow(0 6px 6px rgb(0 0 0 / 0.25)); }
 .vmap-halo { fill: rgb(255 236 170 / 0); stroke: rgb(255 236 170 / 0); stroke-width: 2; transition: fill 0.2s, stroke 0.2s; }
 .vmap-building:hover .vmap-halo, .vmap-building:focus-visible .vmap-halo { fill: rgb(255 236 170 / 0.25); }
@@ -296,7 +296,7 @@ body:has(.vmap) { overflow-x: hidden; }
 }
 
 /* Astre du ciel : soleil le jour, lune la nuit ; un clic le fait se coucher derrière les montagnes. */
-.vmap-celestial { cursor: pointer; outline: none; }
+.vmap-celestial { cursor: var(--cursor-active); outline: none; }
 .vmap-celestial:hover, .vmap-celestial:focus-visible { filter: drop-shadow(0 0 10px rgb(255 230 150 / 0.9)); }
 .vmap-celestial.is-setting { animation: vmap-celestial-set ease-in forwards; }
 .vmap-celestial.is-rising { animation: vmap-celestial-rise ease-out both; }
@@ -338,7 +338,7 @@ body:has(.place-backdrop) { background: transparent; }
 .place-backdrop { position: fixed; inset: 0; z-index: 0; overflow: hidden; background: #1d1915; }
 .place-backdrop-scene { position: absolute; inset: 0; }
 .place-scene { display: block; width: 100%; height: 100%; filter: var(--place-dim); transition: filter 0.9s ease; }
-.place-backdrop-scene:is([data-place='tavern'], [data-place='dungeon'], [data-place='ranking'], [data-place='account']) .place-scene { filter: var(--place-dim-indoor); }
+.place-backdrop-scene:is([data-place='tavern'], [data-place='dungeon'], [data-place='ranking'], [data-place='account'], [data-place='castle'], [data-place='throne']) .place-scene { filter: var(--place-dim-indoor); }
 .place-sky-top { stop-color: var(--sky-top); }
 .place-sky-bottom { stop-color: var(--sky-bottom); }
 .place-stars { fill: #fff7d6; opacity: var(--stars); }
@@ -385,7 +385,7 @@ main:has(.place-sheet) .topbar { margin-bottom: 12px; padding: 8px 10px 8px 16px
 
 /* Caravane : les chariots sur la carte du village. Leur position est recalculée deux fois par
    seconde, et la transition rend le mouvement continu. */
-.vmap-traveller { cursor: pointer; outline: none; }
+.vmap-traveller { cursor: var(--cursor-active); outline: none; }
 .vmap-traveller-move { transition: transform 0.5s linear; }
 .vmap-traveller:hover .vmap-halo, .vmap-traveller:focus-visible .vmap-halo { fill: rgb(255 236 170 / 0.45); stroke: #ffe08a; }
 .vmap-traveller .vmap-wagon-horse { animation: vmap-trot 0.5s ease-in-out infinite alternate; }
@@ -404,7 +404,7 @@ main:has(.place-sheet) .topbar { margin-bottom: 12px; padding: 8px 10px 8px 16px
 .caravan-meter.is-over { background: color-mix(in srgb, var(--warn) 65%, transparent); }
 .caravan-load span { position: relative; display: block; text-align: center; line-height: 26px; font-size: 0.9rem; }
 .caravan-escorts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-.caravan-escort { display: grid; gap: 2px; justify-items: center; text-align: center; padding: 10px; border-radius: 10px; border: 2px solid transparent; background: color-mix(in srgb, var(--muted) 10%, transparent); cursor: pointer; transition: border-color 0.15s, transform 0.15s; }
+.caravan-escort { display: grid; gap: 2px; justify-items: center; text-align: center; padding: 10px; border-radius: 10px; border: 2px solid transparent; background: color-mix(in srgb, var(--muted) 10%, transparent); cursor: var(--cursor-active); transition: border-color 0.15s, transform 0.15s; }
 .caravan-escort input { position: absolute; opacity: 0; pointer-events: none; }
 .caravan-escort:hover { transform: translateY(-2px); }
 .caravan-escort.is-chosen { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
@@ -421,7 +421,7 @@ a.button.is-secondary { background: transparent; color: var(--accent); border: 1
 
 /* Caravane : la vue de profil, en plein écran, sous la barre de retour au village. */
 main:has(.journey) { padding-top: 16px; }
-.journey-exit { position: absolute; inset: 0; }
+.journey-stage { position: absolute; inset: 0; }
 main:has(.journey) .topbar { position: relative; z-index: 2; margin-bottom: 0; padding: 8px 10px 8px 16px; border: 0; border-radius: 999px; background: color-mix(in srgb, var(--panel) 82%, transparent); backdrop-filter: blur(6px); box-shadow: 0 6px 18px rgb(0 0 0 / 0.25); }
 .journey { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
 .journey::before { content: ''; position: absolute; inset: 0; background: linear-gradient(var(--sky-top) 50%, #3d7a37 50%); filter: var(--place-dim); }
@@ -501,7 +501,7 @@ main:has(.journey) .topbar { position: relative; z-index: 2; margin-bottom: 0; p
 }
 
 /* La mare vivante : canards, nénuphars, poissons et reflets. */
-.vmap-pond { cursor: pointer; outline: none; }
+.vmap-pond { cursor: var(--cursor-active); outline: none; }
 .vmap-pond:focus-visible > ellipse:first-of-type { stroke: #ffe08a; stroke-width: 3; }
 .vmap-glint { fill: rgb(255 255 255 / 0.45); opacity: calc(1 - var(--stars)); transition: opacity 0.9s ease; }
 .vmap-moon-reflection { fill: #fff6c8; opacity: calc(var(--stars) * 0.85); transition: opacity 0.9s ease; }

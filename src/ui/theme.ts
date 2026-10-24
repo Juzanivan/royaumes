@@ -30,6 +30,7 @@ export const theme: Record<string, Look> = {
   market: { glyph: '⚖️', label: 'Marché' },
   tavern: { glyph: '🍺', label: 'Taverne' },
   caravan: { glyph: '🐎', label: 'Relais des caravanes' },
+  news: { glyph: '🔔', label: 'Crieur public' },
   brigand: { glyph: '🗡️', label: 'Brigands' },
 }
 

@@ -1,4 +1,5 @@
-import type { KeyboardEvent } from 'react'
+import { useRouter } from 'next/navigation'
+import type { MouseEvent } from 'react'
 import { ArchedDoor } from '../details/arched-door'
 import { iso, type Pt } from '../geometry/iso'
 import { CASTLE } from '../layout'
@@ -31,17 +32,11 @@ function Tower({ x, y }: { x: number; y: number }) {
 
 /**
  * Château du seigneur, au centre du village : son enceinte, son donjon, ses quatre tours et le
- * nom du village. Il se sélectionne comme un bouton, et ouvre le menu du joueur.
+ * nom du village. C'est un lien vers sa grande salle, dont les portes mènent aux données du
+ * joueur et à la déconnexion.
  */
-export function Castle({
-  name,
-  selected,
-  onSelect,
-}: {
-  name: string
-  selected: boolean
-  onSelect: () => void
-}) {
+export function Castle({ name }: { name: string }) {
+  const router = useRouter()
   const [x, y] = CASTLE
   const [gx, gy] = iso(x, y)
   // Tours d'angle : celle du fond, les deux des côtés, celle de l'avant. Elles sont dessinées
@@ -52,22 +47,18 @@ export function Castle({
     [x - 1.25, y + 0.65],
   ]
   const front: Pt = [x + 0.65, y + 0.65]
-  const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault()
-      onSelect()
-    }
+  // Le clic simple navigue sans recharger la page ; les autres gestes suivent le lien.
+  const navigate = (e: MouseEvent) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
+    e.preventDefault()
+    router.push('/castle')
   }
   return (
-    // biome-ignore lint/a11y/useSemanticElements: un élément <button> ne peut pas figurer dans un SVG.
-    <g
-      className={selected ? 'vmap-building is-selected' : 'vmap-building'}
-      role="button"
-      tabIndex={0}
-      aria-pressed={selected}
-      aria-label={`Château de ${name} : menu du seigneur`}
-      onClick={onSelect}
-      onKeyDown={onKeyDown}
+    <a
+      href="/castle"
+      className="vmap-building"
+      aria-label={`Château de ${name} : entrer dans la grande salle`}
+      onClick={navigate}
     >
       <ellipse className="vmap-halo" cx={gx} cy={gy + 4} rx={78} ry={34} />
       <ellipse cx={gx} cy={gy + 6} rx={64} ry={24} fill="rgb(0 0 0 / 0.15)" />
@@ -103,6 +94,6 @@ export function Castle({
           {name}
         </text>
       </g>
-    </g>
+    </a>
   )
 }

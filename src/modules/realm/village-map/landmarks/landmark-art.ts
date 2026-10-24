@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { DestinationKind } from '@/ui/destinations'
+import { Crier } from './crier'
 import { Dungeon } from './dungeon'
 import { Market } from './market'
 import { Ranking } from './ranking'
@@ -22,4 +23,5 @@ export const LANDMARK_ART: Record<
   market: { draw: Market, signHeight: 52 },
   tavern: { draw: Tavern, signHeight: 92 },
   caravan: { draw: Relay, signHeight: 80 },
+  news: { draw: Crier, signHeight: 66 },
 }

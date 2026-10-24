@@ -30,6 +30,8 @@ export const LANDMARKS: Record<DestinationKind, Pt> = {
   market: [9.5, 5.0],
   tavern: [4.75, 8.55],
   caravan: [2.75, 9.8],
+  // Le crieur public, sur l'herbe entre le château et le Donjon.
+  news: [5.5, 2.75],
 }
 
 /**

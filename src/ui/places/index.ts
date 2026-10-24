@@ -1,3 +1,3 @@
-export { ExitArea } from './exit-area'
+export { type Edge, EdgeExits } from './edge-exits'
 export { SceneCelestial } from './parts/scene-celestial'
-export { PlaceBackdrop, type PlaceKind, placeFor, type SceneKind } from './place'
+export { isBarePlace, PlaceBackdrop, type PlaceKind, placeFor, type SceneKind } from './place'

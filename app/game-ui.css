@@ -238,30 +238,11 @@ input::placeholder { color: color-mix(in srgb, var(--sheet-ink) 45%, transparent
 .place-sheet section[aria-label='Supprimer mon compte'] { border-color: color-mix(in srgb, var(--warn) 55%, transparent); }
 .place-sheet section[aria-label='Supprimer mon compte'] button { --btn-top: #f08a6c; --btn-mid: #c0392b; --btn-bottom: #8e2a1f; --btn-ink: #fff4ec; text-shadow: 0 1px 0 rgb(0 0 0 / 0.35); }
 
-/* --- Sortie d'un lieu par le décor ------------------------------------------------------- */
+/* --- Sortie d'un lieu par ses extrémités ------------------------------------------------ */
 /* Le contenu passe au-dessus du décor, mais seul le parchemin capte les clics : partout
-   ailleurs, le clic atteint le décor, qui ramène au village. */
+   ailleurs, le clic atteint le décor ; ses bords gauche et droit ramènent au village. */
 main:has(.place-sheet) { position: relative; z-index: 1; pointer-events: none; padding-top: 28px; }
 main:has(.place-sheet) > * { pointer-events: auto; }
-.exit-area { cursor: pointer; }
-.place-backdrop.exit-area .place-scene { transition: filter 0.3s ease, transform 0.6s ease; }
-.place-backdrop.exit-area:hover .place-scene { filter: var(--place-dim) brightness(1.08); transform: scale(1.01); }
-/* Étiquette qui suit la souris au-dessus du décor. */
-.exit-hint {
-  position: fixed;
-  z-index: 5;
-  transform: translate(16px, 14px);
-  pointer-events: none;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-family: var(--font-heading);
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--title-gold);
-  background: rgb(30 18 10 / 0.85);
-  box-shadow: 0 0 0 2px var(--frame-gold), 0 6px 14px rgb(0 0 0 / 0.35);
-  white-space: nowrap;
-}
 /* Consigne affichée à l'arrivée dans un lieu, qui s'efface d'elle-même. */
 .exit-tip {
   position: fixed;
@@ -483,3 +464,79 @@ main:has(.title-screen) { max-width: none; padding: 0; }
 .news-bell { transform-box: fill-box; transform-origin: 50% 0; animation: news-ring 1.2s ease-in-out infinite; }
 @keyframes news-ring { 0%, 100% { transform: rotate(-14deg); } 50% { transform: rotate(14deg); } }
 @media (prefers-reduced-motion: reduce) { .news-seal, .news-bell { animation: none; } }
+
+/*
+ * Grande salle du château : l'écran est posé sur le décor, sans parchemin. Les portes sont
+ * alignées sur la ligne du sol du décor (660 sur 900, en « slice » calé en bas) : elle est à
+ * 240/900 de la hauteur, ou 240/1600 de la largeur, selon la dimension qui fixe l'échelle.
+ */
+main:has(.castle) { position: relative; z-index: 1; pointer-events: none; }
+.castle { position: fixed; inset: 0; pointer-events: none; }
+.castle-title { position: absolute; top: max(16px, 4vh); left: 50%; transform: translateX(-50%); padding: 10px 28px 8px; text-align: center; color: #fff4dc; background: linear-gradient(#6b2a22, #4a1c17); border: 3px solid var(--frame-gold, #c9a227); border-radius: 10px; box-shadow: 0 6px 18px rgb(0 0 0 / 0.35); white-space: nowrap; }
+.castle-title h1 { margin: 0; font-family: var(--font-title); font-size: clamp(1.1rem, 3.2vw, 1.8rem); letter-spacing: 0.04em; }
+.castle-title p { margin: 2px 0 0; font-size: 0.95rem; opacity: 0.9; }
+.castle-doors { position: absolute; left: 0; right: 0; bottom: max(15vw, 26.67vh); display: flex; justify-content: center; align-items: flex-end; gap: clamp(12px, 6vw, 110px); padding: 0 12px; }
+.castle-door, button.castle-door, button.castle-door:hover { background: none; box-shadow: none; border: 0; min-height: 0; }
+.castle-door { pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0; margin: 0 0 -6px; background: none; border: 0; color: inherit; text-decoration: none; cursor: var(--cursor-active); font: inherit; transition: transform 0.25s ease, filter 0.25s ease; }
+.castle-door-art { display: block; height: min(36vh, 300px); width: auto; filter: drop-shadow(0 8px 12px rgb(0 0 0 / 0.45)); }
+.castle-door-label { order: -1; display: flex; flex-direction: column; align-items: center; padding: 4px 14px; border-radius: 8px; background: #f3e6c8; color: #3b2a1c; border: 2px solid #8a6a3a; font-family: var(--font-title); font-weight: 700; font-size: clamp(0.85rem, 2.4vw, 1.05rem); box-shadow: 0 3px 8px rgb(0 0 0 / 0.3); }
+.castle-door-label small { font-family: var(--font-body); font-weight: 400; font-size: 0.8em; opacity: 0.8; }
+.castle-door.is-locked .castle-door-label { background: #8f1f1f; color: #fbecd8; border-color: #4f0f0f; }
+.castle-door.is-throne .castle-door-label { background: #e9c46a; border-color: #8a6a14; }
+.castle-door:hover, .castle-door:focus-visible { transform: translateY(-6px); filter: brightness(1.12); }
+.castle-door:focus-visible { outline: 3px solid #ffd27a; outline-offset: 6px; border-radius: 12px; }
+.castle-door:disabled { cursor: progress; opacity: 0.7; }
+@media (max-width: 520px) {
+  .castle-doors { gap: 14px; }
+  .castle-door-label { padding: 3px 8px; font-size: 0.8rem; }
+  .castle-door-art { height: min(19vh, 150px); }
+}
+
+/* Carte du village : le crieur public, sa cloche, et le parchemin scellé d'une annonce non lue. */
+.vmap-crier-bell { transform-box: fill-box; transform-origin: 30% 100%; animation: news-ring 1.2s ease-in-out infinite; }
+.vmap-news { pointer-events: none; }
+.vmap-news-float { transform-box: fill-box; transform-origin: 50% 100%; animation: vmap-news 1.4s ease-in-out 4 alternate; }
+@keyframes vmap-news { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .vmap-news-float, .vmap-crier-bell { animation: none; } }
+
+/* Le décor de la grande salle reste interactif (le soleil ou la lune), sans faire sortir. */
+main:has(.castle) > .place-backdrop { pointer-events: auto; }
+
+/* Bandes de sortie, sur les bords du décor : au survol, elles s'assombrissent vers le noir, et la
+   souris devient un petit homme qui s'en va, précédé d'une petite flèche (pointe de la souris). */
+.edge-exit { position: absolute; top: 0; bottom: 0; width: clamp(48px, 6vw, 110px); z-index: 1; display: flex; align-items: center; justify-content: center; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath d='M1 2 L8 9 L4.2 9.4 L6.4 14 L4.6 14.8 L2.5 10.2 L1 12.6 Z' fill='%23f6d36b' stroke='%233a2412' stroke-width='1.3' stroke-linejoin='round'/%3E%3Cg transform='translate%286 2%29' fill='%23f4f1e4' stroke='%231d3a24' stroke-width='1.6' stroke-linejoin='round' paint-order='stroke'%3E%3Cpath d='M20.5 12.5 14 15.5 11 21l2.6 1.3 2.3-4.2 3-1.2-2.4 7.6-6 5.5 2 2.3 6.4-5.6 3.8 3.4 1.2 6h3l-1.5-7.4-4-4 1.5-5 1.6 2.4 4.9 1.4.8-2.8-4-1.1-2.6-4.1c-.8-1.2-2.1-1.7-3.7-1.4z'/%3E%3Ccircle cx='23' cy='8' r='3.6'/%3E%3C/g%3E%3C/svg%3E") 1 2, pointer; }
+.edge-exit.is-left { left: 0; }
+.edge-exit.is-right { right: 0; }
+.edge-exit::before { content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity 0.6s ease; }
+.edge-exit.is-left::before { background: linear-gradient(90deg, rgb(0 0 0 / 0.95), transparent); }
+.edge-exit.is-right::before { background: linear-gradient(270deg, rgb(0 0 0 / 0.95), transparent); }
+.edge-exit:hover::before { opacity: 1; }
+.edge-exit-label { position: relative; writing-mode: vertical-rl; padding: 12px 4px; color: #f4ead2; font-family: var(--font-title); font-size: 0.9rem; letter-spacing: 0.12em; white-space: nowrap; opacity: 0; transition: opacity 0.5s ease; }
+.edge-exit.is-left .edge-exit-label { transform: rotate(180deg); }
+.edge-exit:hover .edge-exit-label { opacity: 1; }
+/* Sur un écran tactile, la croix de la mise en page remplace les bandes. */
+@media (hover: none) { .edge-exit { display: none; } }
+/* La vue de profil d'une caravane : sa bande de sortie passe au-dessus de la scène. */
+.journey .edge-exit { z-index: 2; }
+
+/* --- Souris du jeu : une flèche dorée, qui scintille sur ce qui se clique -------------------- */
+:root { --cursor-default: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M3 2 L3 24 L8.6 18.8 L12.6 28 L16.4 26.4 L12.4 17.4 L20 17 Z' fill='%23f6d36b' stroke='%233a2412' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M5.4 6.5 L5.4 19 L9.4 15.4 L16 15' fill='none' stroke='%23fff6c9' stroke-width='1.2' stroke-linejoin='round' opacity='0.8'/%3E%3C/svg%3E") 3 2, auto; --cursor-active: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M3 2 L3 24 L8.6 18.8 L12.6 28 L16.4 26.4 L12.4 17.4 L20 17 Z' fill='%23ffe58a' stroke='%233a2412' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M5.4 6.5 L5.4 19 L9.4 15.4 L16 15' fill='none' stroke='%23fff' stroke-width='1.2' stroke-linejoin='round'/%3E%3Cg fill='%23fff2a8' stroke='%23b8860b' stroke-width='0.8'%3E%3Cpath d='M24 3 l1.2 3 3 1.2 -3 1.2 -1.2 3 -1.2 -3 -3 -1.2 3 -1.2 z'/%3E%3Cpath d='M27.5 13 l.7 1.6 1.6 .7 -1.6 .7 -.7 1.6 -.7 -1.6 -1.6 -.7 1.6 -.7 z'/%3E%3C/g%3E%3C/svg%3E") 3 2, pointer; }
+html { cursor: var(--cursor-default); }
+a, button, [role='button'], label, select, summary { cursor: var(--cursor-active); }
+input:not([type='radio']):not([type='checkbox']), textarea { cursor: text; }
+.journey .exit-tip { bottom: 150px; }
+/* Au survol du crieur, son écriteau prend la place du parchemin. */
+.vmap-news { transition: opacity 0.2s ease; }
+.vmap-landmark:is(:hover, :focus-visible) .vmap-news { opacity: 0; }
+.castle-crown { transform-box: fill-box; transform-origin: 50% 100%; animation: castle-crown 3s ease-in-out infinite; }
+@keyframes castle-crown { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.25) drop-shadow(0 0 4px #ffe58a); } }
+.castle-door.is-locked:hover .castle-padlock { animation: castle-rattle 0.4s ease-in-out 2; transform-box: fill-box; transform-origin: 50% 0; }
+@keyframes castle-rattle { 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+@media (prefers-reduced-motion: reduce) { .castle-crown, .castle-door.is-locked:hover .castle-padlock { animation: none; } }
+
+/* Profil du joueur, au trône du château. */
+.profile-form { display: block; max-width: none; width: 100%; box-sizing: border-box; }
+.profile-form .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.profile-form .row input { flex: 1 1 220px; min-width: 0; }
+.profile-fields { display: grid; gap: 6px; max-width: 420px; margin-bottom: 12px; }
+.profile-ok { color: var(--ok); font-weight: 700; }

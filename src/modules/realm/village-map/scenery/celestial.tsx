@@ -100,7 +100,6 @@ export function Celestial() {
       onKeyDown={onKeyDown}
       style={{ animationDuration: `${HALF}ms` }}
     >
-      <title>{label}</title>
       {theme === 'dark' ? <Moon /> : <Sun />}
     </g>
   )

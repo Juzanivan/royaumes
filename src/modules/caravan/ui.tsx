@@ -1,19 +1,16 @@
 'use client'
-import { hc } from 'hono/client'
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { RESOURCES, type Resource } from '@/modules/realm/contracts'
 import { useChannel } from '@/platform/realtime/use-channel'
 import { Entity } from '@/ui/entity'
-import { ExitArea } from '@/ui/places'
+import { EdgeExits } from '@/ui/places'
 import { look } from '@/ui/theme'
-import type { CaravanApi } from './api'
 import {
   attackChance,
   CARAVAN_CAPACITY,
   type CaravanError,
   type CaravanList,
-  type CaravanStatus,
   type CaravanView,
   type Cargo,
   caravanStream,
@@ -491,15 +488,16 @@ export function CaravanJourney({ caravanId }: { caravanId: string }) {
       <h1 className="sr-only">
         Caravane {view.role === 'sender' ? `vers ${view.recipientName}` : `de ${view.senderName}`}
       </h1>
-      {/* La route est la sortie de la vue : un clic ramène au village, comme le décor d'un lieu. */}
-      <ExitArea className="journey-exit">
+      <div className="journey-stage">
         <JourneyScene
           phase={phase}
           cargo={view.cargo}
           escort={view.escort}
           destination={view.recipientName}
         />
-      </ExitArea>
+      </div>
+      {/* Le bord gauche, d'où vient la route, ramène au village. */}
+      <EdgeExits edges={['left']} />
       <ProgressBar
         progress={progress}
         from={home}

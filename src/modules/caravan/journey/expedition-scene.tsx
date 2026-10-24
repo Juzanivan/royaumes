@@ -66,8 +66,14 @@ export function ExpeditionScene({
   ].join(' ')
   const exploring = phase === 'exploring'
   return (
-    <svg className={classes} viewBox="0 0 1600 900" preserveAspectRatio="xMidYMax slice">
-      <title>La caravane en expédition vers la grotte</title>
+    // biome-ignore lint/a11y/useSemanticElements: un <fieldset> ne peut pas remplacer un <svg> ; le groupe est nommé par aria-label, sans <title> qui s'afficherait en infobulle.
+    <svg
+      className={classes}
+      viewBox="0 0 1600 900"
+      preserveAspectRatio="xMidYMax slice"
+      role="group"
+      aria-label="La caravane en expédition vers la grotte"
+    >
       <JourneySky />
       <Landscape />
       <g className={caveShown ? 'journey-gate is-shown' : 'journey-gate'}>

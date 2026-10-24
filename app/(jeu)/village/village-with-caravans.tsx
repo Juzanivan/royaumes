@@ -7,7 +7,7 @@ import { VillageScreen } from '@/modules/realm/ui'
  * les deux modules : le Village dessine les chariots sans rien savoir de la Caravane, qui
  * fournit seulement leur liste.
  */
-export function VillageWithCaravans({ userId, userName }: { userId: string; userName: string }) {
+export function VillageWithCaravans({ userId }: { userId: string }) {
   const travellers = useCaravanTraffic()
-  return <VillageScreen userId={userId} userName={userName} travellers={travellers} />
+  return <VillageScreen userId={userId} travellers={travellers} />
 }
